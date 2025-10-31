@@ -1,2 +1,4 @@
-# SDE-Sheet
-striver SDE Sheet
+# Logic Moto Practice
+
+logicmojo assignments and coding work
+
