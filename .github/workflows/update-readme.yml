@@ -2,17 +2,19 @@ name: Auto Update README
 
 on:
   push:
-    paths:
-      - 'dsa/**/*.java'
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
-  update:
+  update-readme:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -20,11 +22,17 @@ jobs:
           python-version: '3.x'
 
       - name: Run update script
-        run: python update_readme.py
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -R  # just to debug your repo structure
+          python3 update_readme.py
 
       - name: Commit and push changes
+        working-directory: ${{ github.workspace }}
         run: |
           git config --global user.name "akashkhairnar"
           git config --global user.email "akashkhairnar40@gmail.com"
           git add README.md
-          git diff --quiet && echo "No changes to commit" || (git commit -m "Auto update README" && git push)
+          git diff --staged --quiet || git commit -m "Auto-update README"
+          git push
