@@ -1,0 +1,27 @@
+name: Auto Update README
+
+on:
+  push:
+    paths:
+      - 'dsa/**/*.java'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run update script
+        run: python update_readme.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "akashkhairnar"
+          git config --global user.email "akashkhairnar40@gmail.com"
+          git add README.md
+          git diff --quiet && echo "No changes to commit" || (git commit -m "Auto update README" && git push)
