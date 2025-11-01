@@ -1,5 +1,5 @@
 // Problem: 283-Move Zeroes
-// Recap: Count zeros and if count>0 then swap no by that mush index .
+// Recap: Count zeros and if count>0 then swap no by that mush index.
 
 
 public void moveZeroes(int[] nums) {
