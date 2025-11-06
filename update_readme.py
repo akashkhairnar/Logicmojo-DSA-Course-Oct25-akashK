@@ -1,9 +1,12 @@
 import os
 
-ROOT = "dsa"  # folder where all your .java files are
+ROOT = "dsa"  # Folder containing your Java files
 README_PATH = "README.md"
 HTML_PATH = "index.html"
 
+# -----------------------------
+# 1️⃣ Extract metadata
+# -----------------------------
 def extract_metadata(file_path):
     """Extract metadata (Problem, Link, Notes, Level, Time, Revisit) from Java file comments"""
     problem = "-"
@@ -35,6 +38,35 @@ def extract_metadata(file_path):
     return problem, link, notes, level, time_complexity, revisit
 
 
+# -----------------------------
+# 2️⃣ Generate Markdown Table (for README)
+# -----------------------------
+def generate_table():
+    """Generate Markdown table for README.md"""
+    rows = []
+    count = 1
+    for root, _, files in os.walk(ROOT):
+        for file in sorted(files):
+            if file.endswith(".java") and ".git" not in root and ".github" not in root:
+                path = os.path.join(root, file)
+                github_link = f"[Code]({path})"
+                problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                problem_display = f"[{problem}]({link})" if link else problem
+                rows.append(
+                    f"| {count} | {problem_display} | {github_link} | {level} | {time_complexity} | {revisit} | {notes} |"
+                )
+                count += 1
+
+    if not rows:
+        return "No Java files found yet."
+
+    header = "| # | Problem | Solution | Level | Time Complexity | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|"
+    return header + "\n" + "\n".join(rows)
+
+
+# -----------------------------
+# 3️⃣ Generate HTML Dashboard
+# -----------------------------
 def generate_html():
     """Generate interactive HTML dashboard with color-coded difficulty"""
     rows_html = []
@@ -48,8 +80,7 @@ def generate_html():
                 code_cell = f'<a href="{path}" target="_blank">Code</a>'
 
                 # 🎨 Add color-coded level badges
-                level_class = "level-unknown"
-                level_text = level.capitalize() if level else "-"
+                level_class = ""
                 if level.lower() == "easy":
                     level_class = "level-easy"
                 elif level.lower() == "medium":
@@ -57,7 +88,7 @@ def generate_html():
                 elif level.lower() == "hard":
                     level_class = "level-hard"
 
-                level_cell = f'<span class="{level_class}">{level_text}</span>'
+                level_cell = f'<span class="{level_class}">{level}</span>'
 
                 rows_html.append(
                     f"<tr><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
@@ -188,8 +219,8 @@ document.addEventListener("DOMContentLoaded", function() {{
       const level = row.cells[3].textContent.trim().toLowerCase();
       const revisit = row.cells[5].textContent.trim().toLowerCase();
 
-      const matchLevel = !levelVal || level.includes(levelVal);
-      const matchRevisit = !revisitVal || revisit.includes(revisitVal);
+      const matchLevel = !levelVal or level === levelVal;
+      const matchRevisit = !revisitVal or revisit === revisitVal;
 
       if (!(matchLevel && matchRevisit)) {{
         dataTable.rows().hide([index]);
@@ -210,7 +241,9 @@ document.addEventListener("DOMContentLoaded", function() {{
     print("✅ index.html (Dashboard) generated successfully!")
 
 
-
+# -----------------------------
+# 4️⃣ Update README with Dashboard link
+# -----------------------------
 def update_readme():
     """Generate README.md with a dashboard link"""
     table = generate_table()
@@ -231,6 +264,9 @@ Automatically generated table of solved problems.
     print("✅ README.md updated successfully!")
 
 
+# -----------------------------
+# 5️⃣ Main entry point
+# -----------------------------
 if __name__ == "__main__":
     update_readme()
     generate_html()
