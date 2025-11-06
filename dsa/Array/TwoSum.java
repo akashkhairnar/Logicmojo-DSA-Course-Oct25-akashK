@@ -1,6 +1,6 @@
 //Problem:  Two Sum
 //Link: https://leetcode.com/problems/two-sum/description/.
-//Notes:  Use map to store num[i],index.
+//Notes: Use map to store num[i],index.
 //Level : Easy
 //Time Complexity: O(n)
 class Solution {

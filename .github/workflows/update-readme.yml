@@ -4,7 +4,7 @@ name: Auto Update README
 on:
   push:
     branches:
-      - main
+      - master
 
 permissions:
   contents: write
