@@ -36,7 +36,7 @@ jobs:
         run: |
           git config --global user.name "akashkhairnar"
           git config --global user.email "akashkhairnar40@gmail.com"
-          git add README.md
+          git add README.md index.html
           if ! git diff --staged --quiet; then
             git commit -m "Auto-update README with LeetCode links"
             git push origin HEAD:${{ github.ref_name }}

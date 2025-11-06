@@ -3,6 +3,7 @@
 // Notes: Use map to store num[i],index.
 // Level: Easy
 // Time Complexity: O(n)
+// Revisit: No
 class Solution {
     public int[] twoSum(int[] nums, int target) {
         Map<Integer, Integer> store = new HashMap<>();

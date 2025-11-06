@@ -3,7 +3,7 @@
 // Notes: Count zeros and if count>0 then swap no by that much index
 // Level: Easy
 // Time Complexity: O(n)
-
+// Revisit: Yes
 public void moveZeroes(int[] nums) {
         int count=0;
 
