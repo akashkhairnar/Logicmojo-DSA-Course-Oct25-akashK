@@ -1,8 +1,8 @@
-//Problem:  Two Sum
-//Link: https://leetcode.com/problems/two-sum/description/.
-//Notes: Use map to store num[i],index.
-//Level : Easy
-//Time Complexity: O(n)
+// Problem:  Two Sum
+// Link: https://leetcode.com/problems/two-sum/description/.
+// Notes: Use map to store num[i],index.
+// Level: Easy
+// Time Complexity: O(n)
 class Solution {
     public int[] twoSum(int[] nums, int target) {
         Map<Integer, Integer> store = new HashMap<>();
