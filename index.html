@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 40px;
+  background: #f8f9fa;
+}
+h1 {
+  text-align: center;
+  color: #333;
+}
+select {
+  margin: 10px;
+  padding: 5px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  text-align: left;
+  padding: 8px;
+}
+</style>
+</head>
+<body>
+
+<h1>📘 DSA Problem Dashboard</h1>
+
+<div style="text-align:center;">
+  <label>Filter by Level:</label>
+  <select id="levelFilter">
+    <option value="">All</option>
+    <option value="Easy">Easy</option>
+    <option value="Medium">Medium</option>
+    <option value="Hard">Hard</option>
+  </select>
+
+  <label>Filter by Revisit:</label>
+  <select id="revisitFilter">
+    <option value="">All</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
+</div>
+
+<table id="problemsTable" class="datatable">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Problem</th>
+      <th>Solution</th>
+      <th>Level</th>
+      <th>Time Complexity</th>
+      <th>Revisit</th>
+      <th>Quick Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td>Easy</td><td>-</td><td>Yes</td><td>Count zeros and if count>0 then swap no by that much index</td></tr><tr><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td>Easy</td><td>-</td><td>No</td><td>Use map to store num[i],index.</td></tr>
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const dataTable = new simpleDatatables.DataTable("#problemsTable");
+  const levelFilter = document.getElementById("levelFilter");
+  const revisitFilter = document.getElementById("revisitFilter");
+
+  function applyFilters() {
+    dataTable.rows().show();
+    const levelVal = levelFilter.value;
+    const revisitVal = revisitFilter.value;
+
+    dataTable.rows().each((row) => {
+      const level = row.cells[3].innerText.trim();
+      const revisit = row.cells[5].innerText.trim();
+
+      if ((levelVal && level !== levelVal) || (revisitVal && revisit !== revisitVal)) {
+        row.style.display = "none";
+      }
+    });
+  }
+
+  levelFilter.addEventListener("change", applyFilters);
+  revisitFilter.addEventListener("change", applyFilters);
+});
+</script>
+
+</body>
+</html>
