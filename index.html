@@ -23,10 +23,43 @@ select {
 table {
   width: 100%;
   border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: 6px;
 }
-th, td {
+th {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+}
+td {
   text-align: left;
   padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+tr:hover {
+  background-color: #f1f1f1;
+}
+.level-easy {
+  background: #d4edda;
+  color: #155724;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.level-medium {
+  background: #fff3cd;
+  color: #856404;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.level-hard {
+  background: #f8d7da;
+  color: #721c24;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 </style>
 </head>
@@ -38,16 +71,16 @@ th, td {
   <label>Filter by Level:</label>
   <select id="levelFilter">
     <option value="">All</option>
-    <option value="Easy">Easy</option>
-    <option value="Medium">Medium</option>
-    <option value="Hard">Hard</option>
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
   </select>
 
   <label>Filter by Revisit:</label>
   <select id="revisitFilter">
     <option value="">All</option>
-    <option value="Yes">Yes</option>
-    <option value="No">No</option>
+    <option value="yes">Yes</option>
+    <option value="no">No</option>
   </select>
 </div>
 
@@ -64,28 +97,34 @@ th, td {
     </tr>
   </thead>
   <tbody>
-    <tr><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td>Easy</td><td>-</td><td>Yes</td><td>Count zeros and if count>0 then swap no by that much index</td></tr><tr><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td>Easy</td><td>-</td><td>No</td><td>Use map to store num[i],index.</td></tr>
+    <tr><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>O(n)</td><td>Yes</td><td>Count zeros and if count>0 then swap no by that much index</td></tr><tr><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>O(n)</td><td>No</td><td>Use map to store num[i],index.</td></tr>
   </tbody>
 </table>
 
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  const dataTable = new simpleDatatables.DataTable("#problemsTable");
+  const table = document.querySelector("#problemsTable");
+  const dataTable = new simpleDatatables.DataTable(table);
+
   const levelFilter = document.getElementById("levelFilter");
   const revisitFilter = document.getElementById("revisitFilter");
 
   function applyFilters() {
+    const levelVal = levelFilter.value.toLowerCase();
+    const revisitVal = revisitFilter.value.toLowerCase();
+
     dataTable.rows().show();
-    const levelVal = levelFilter.value;
-    const revisitVal = revisitFilter.value;
 
-    dataTable.rows().each((row) => {
-      const level = row.cells[3].innerText.trim();
-      const revisit = row.cells[5].innerText.trim();
+    dataTable.data.forEach((row, index) => {
+      const level = row.cells[3].textContent.trim().toLowerCase();
+      const revisit = row.cells[5].textContent.trim().toLowerCase();
 
-      if ((levelVal && level !== levelVal) || (revisitVal && revisit !== revisitVal)) {
-        row.style.display = "none";
+      const matchLevel = !levelVal or level === levelVal;
+      const matchRevisit = !revisitVal or revisit === revisitVal;
+
+      if (!(matchLevel && matchRevisit)) {
+        dataTable.rows().hide([index]);
       }
     });
   }
