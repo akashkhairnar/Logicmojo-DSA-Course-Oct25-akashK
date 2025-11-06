@@ -184,19 +184,18 @@ def update_readme():
     dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
     content = f"""# 🚀 DSA in Java
 
+📊 **[View Interactive Dashboard →]({dashboard_url})**
+_Filter by Level, Time Complexity, and Revisit status interactively!_
 
-   📊 **[View Interactive Dashboard →]({dashboard_url})**
-   _Filter by Level, Time Complexity, and Revisit status interactively!_
+---
 
-   ---
+Automatically generated table of solved problems.
 
-   Automatically generated table of solved problems.
-
-   {table}
-   """
-       with open(README_PATH, "w", encoding="utf-8") as f:
-           f.write(content)
-       print("✅ README.md updated successfully!")
+{table}
+"""
+    with open(README_PATH, "w", encoding="utf-8") as f:
+        f.write(content)
+    print("✅ README.md updated successfully!")
 
 
 if __name__ == "__main__":
