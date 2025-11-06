@@ -180,9 +180,10 @@ document.addEventListener("DOMContentLoaded", function() {{
 
 def update_readme():
     """Generate README.md with a dashboard link"""
-       table = generate_table()
-       dashboard_url =  "https://github.com/akashkhairnar/Logicmojo-DSA-Course-Oct25-akashK"
-       content = f"""# 🚀 DSA in Java
+    table = generate_table()
+    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
+    content = f"""# 🚀 DSA in Java
+
 
    📊 **[View Interactive Dashboard →]({dashboard_url})**
    _Filter by Level, Time Complexity, and Revisit status interactively!_
