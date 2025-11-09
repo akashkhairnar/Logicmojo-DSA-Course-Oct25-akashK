@@ -13,7 +13,7 @@ def extract_metadata(file_path):
     link = ""
     notes = "-"
     level = "-"
-    time_complexity = "-"
+    pattern = "-"
     revisit = "-"
 
     try:
@@ -28,14 +28,14 @@ def extract_metadata(file_path):
                     notes = line.replace("// Notes:", "").strip()
                 elif line.startswith("// Level:"):
                     level = line.replace("// Level:", "").strip()
-                elif line.startswith("// TimeComplexity:"):
-                    time_complexity = line.replace("// TimeComplexity:", "").strip()
+                elif line.startswith("// Pattern:"):
+                    pattern = line.replace("// Pattern:", "").strip()
                 elif line.startswith("// Revisit:"):
                     revisit = line.replace("// Revisit:", "").strip()
     except Exception as e:
         print(f"⚠️ Error reading {file_path}: {e}")
 
-    return problem, link, notes, level, time_complexity, revisit
+    return problem, link, notes, level, pattern, revisit
 
 
 # -----------------------------
@@ -50,17 +50,17 @@ def generate_table():
             if file.endswith(".java") and ".git" not in root and ".github" not in root:
                 path = os.path.join(root, file)
                 github_link = f"[Code]({path})"
-                problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                problem, link, notes, level, pattern, revisit = extract_metadata(path)
                 problem_display = f"[{problem}]({link})" if link else problem
                 rows.append(
-                    f"| {count} | {problem_display} | {github_link} | {level} | {time_complexity} | {revisit} | {notes} |"
+                    f"| {count} | {problem_display} | {github_link} | {level} | {pattern} | {revisit} | {notes} |"
                 )
                 count += 1
 
     if not rows:
         return "No Java files found yet."
 
-    header = "| # | Problem | Solution | Level | Time Complexity | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|"
+    header = "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|"
     return header + "\n" + "\n".join(rows)
 
 
@@ -75,7 +75,7 @@ def generate_html():
         for file in sorted(files):
             if file.endswith(".java"):
                 path = os.path.join(root, file)
-                problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                problem, link, notes, level, pattern, revisit = extract_metadata(path)
                 problem_cell = f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
                 code_cell = f'<a href="{path}" target="_blank">Code</a>'
 
@@ -92,7 +92,7 @@ def generate_html():
 
                 rows_html.append(
                     f"<tr><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
-                    f"<td>{level_cell}</td><td>{time_complexity}</td>"
+                    f"<td>{level_cell}</td><td>{pattern}</td>"
                     f"<td>{revisit}</td><td>{notes}</td></tr>"
                 )
                 count += 1
@@ -190,7 +190,7 @@ tr:hover {{
       <th>Problem</th>
       <th>Solution</th>
       <th>Level</th>
-      <th>Time Complexity</th>
+      <th>Pattern</th>
       <th>Revisit</th>
       <th>Quick Notes</th>
     </tr>
@@ -251,7 +251,7 @@ def update_readme():
     content = f"""# 🚀 DSA in Java
 
 📊 **[View Interactive Dashboard →]({dashboard_url})**
-_Filter by Level, Time Complexity, and Revisit status interactively!_
+_Filter by Level, Pattern, and Revisit status interactively!_
 
 ---
 

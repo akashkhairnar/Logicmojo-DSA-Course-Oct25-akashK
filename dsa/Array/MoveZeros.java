@@ -1,8 +1,8 @@
 // Problem:  Move Zeroes
 // Link: https://leetcode.com/problems/move-zeroes/description.
-// Notes: Count zeros and if count>0 then swap no by that much index
+// Notes: Count zeros and if count>0 then swap number by that much index
 // Level: Easy
-// TimeComplexity: O(n)
+// Pattern: Two Pointer
 // Revisit: Yes
 public void moveZeroes(int[] nums) {
         int count=0;

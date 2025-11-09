@@ -2,7 +2,7 @@
 // Link: https://leetcode.com/problems/two-sum/description/.
 // Notes: Use map to store num[i],index.
 // Level: Easy
-// TimeComplexity: O(n)
+// Pattern: HashMap (Complement Pattern)
 // Revisit: No
 class Solution {
     public int[] twoSum(int[] nums, int target) {
