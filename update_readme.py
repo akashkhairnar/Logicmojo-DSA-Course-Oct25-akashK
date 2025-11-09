@@ -68,18 +68,23 @@ def generate_table():
 # 3️⃣ Generate HTML Dashboard
 # -----------------------------
 def generate_html():
-    """Generate interactive HTML dashboard with color-coded difficulty"""
     rows_html = []
     count = 1
+    type_set = set()
+
     for root, _, files in os.walk(ROOT):
         for file in sorted(files):
             if file.endswith(".java"):
+                # Extract type from subfolder (like array, linkedlist, etc.)
+                relative_path = os.path.relpath(root, ROOT)
+                problem_type = relative_path.split(os.sep)[0] if relative_path != "." else "general"
+                type_set.add(problem_type)
+
                 path = os.path.join(root, file)
                 problem, link, notes, level, pattern, revisit = extract_metadata(path)
                 problem_cell = f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
                 code_cell = f'<a href="{path}" target="_blank">Code</a>'
 
-                # 🎨 Color-coded levels
                 level_class = ""
                 if level.lower() == "easy":
                     level_class = "level-easy"
@@ -91,12 +96,19 @@ def generate_html():
                 level_cell = f'<span class="{level_class}">{level}</span>'
 
                 rows_html.append(
-                    f"<tr><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
-                    f"<td>{level_cell}</td><td>{pattern}</td>"
-                    f"<td>{revisit}</td><td>{notes}</td></tr>"
+                    f"<tr data-type='{problem_type}'><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
+                    f"<td>{level_cell}</td><td>{pattern}</td><td>{revisit}</td><td>{notes}</td></tr>"
                 )
                 count += 1
 
+    # ✅ Ensure at least one default type exists
+    if not type_set:
+        type_set.add("general")
+
+    # ✅ Generate dropdown options
+    type_options_html = "\n".join([f'<option value="{t}">{t.capitalize()}</option>' for t in sorted(type_set)])
+
+    # ✅ HTML content
     html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -122,23 +134,18 @@ select {{
 table {{
   width: 100%;
   border-collapse: collapse;
-  border-spacing: 0;
-  table-layout: fixed;
   background: white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   border-radius: 6px;
   overflow: hidden;
 }}
-
-/* 🎯 Optimized column widths */
-th:nth-child(1), td:nth-child(1) {{ width: 5%; }}   /* # */
-th:nth-child(2), td:nth-child(2) {{ width: 15%; }}  /* Problem */
-th:nth-child(3), td:nth-child(3) {{ width: 8%; }}   /* Solution */
-th:nth-child(4), td:nth-child(4) {{ width: 8%; }}   /* Level */
-th:nth-child(5), td:nth-child(5) {{ width: 20%; }}  /* Pattern */
-th:nth-child(6), td:nth-child(6) {{ width: 8%; }}   /* Revisit */
-th:nth-child(7), td:nth-child(7) {{ width: 36%; }}  /* Quick Notes */
-
+th:nth-child(1), td:nth-child(1) {{ width: 5%; }}
+th:nth-child(2), td:nth-child(2) {{ width: 20%; }}
+th:nth-child(3), td:nth-child(3) {{ width: 8%; }}
+th:nth-child(4), td:nth-child(4) {{ width: 8%; }}
+th:nth-child(5), td:nth-child(5) {{ width: 20%; }}
+th:nth-child(6), td:nth-child(6) {{ width: 8%; }}
+th:nth-child(7), td:nth-child(7) {{ width: 26%; }}
 th, td {{
   text-align: left;
   padding: 10px;
@@ -151,7 +158,6 @@ th {{
   font-weight: bold;
   position: sticky;
   top: 0;
-  z-index: 1;
 }}
 tbody tr:hover {{
   background-color: #f1f1f1;
@@ -184,6 +190,12 @@ tbody tr:hover {{
 <h1>📘 DSA Problem Dashboard</h1>
 
 <div style="text-align:center;">
+  <label>Filter by Type:</label>
+  <select id="typeFilter">
+    <option value="">All</option>
+    {type_options_html}
+  </select>
+
   <label>Filter by Level:</label>
   <select id="levelFilter">
     <option value="">All</option>
@@ -223,51 +235,32 @@ document.addEventListener("DOMContentLoaded", function() {{
   const table = document.querySelector("#problemsTable");
   const dataTable = new simpleDatatables.DataTable(table);
 
+  const typeFilter = document.getElementById("typeFilter");
   const levelFilter = document.getElementById("levelFilter");
   const revisitFilter = document.getElementById("revisitFilter");
 
   function applyFilters() {{
+    const typeVal = (typeFilter.value || "").toLowerCase();
     const levelVal = (levelFilter.value || "").toLowerCase();
     const revisitVal = (revisitFilter.value || "").toLowerCase();
 
     const rows = dataTable.data && dataTable.data.data ? dataTable.data.data : [];
 
     rows.forEach((row) => {{
-      const getText = (cell) => {{
-        if (!cell) return "";
-        if (typeof cell === "string") return cell;
-        if (cell.text !== undefined) return String(cell.text);
-        if (cell.data !== undefined) return String(cell.data);
-        return "";
-      }};
-      const level = (getText(row.cells[3]) || "").trim().toLowerCase();
-      const revisit = (getText(row.cells[5]) || "").trim().toLowerCase();
+      const el = row.element;
+      const rowType = el.getAttribute("data-type")?.toLowerCase() || "";
+      const rowLevel = el.querySelector("td:nth-child(4)")?.innerText.toLowerCase() || "";
+      const rowRevisit = el.querySelector("td:nth-child(6)")?.innerText.toLowerCase() || "";
 
-      const matchLevel = (!levelVal) || (level === levelVal);
-      const matchRevisit = (!revisitVal) || (revisit === revisitVal);
+      const matchType = !typeVal || rowType === typeVal;
+      const matchLevel = !levelVal || rowLevel === levelVal;
+      const matchRevisit = !revisitVal || rowRevisit === revisitVal;
 
-      if (!row.attributes) row.attributes = {{}};
-
-      // show if both match, otherwise hide
-      if (matchLevel && matchRevisit) {{
-        // remove display:none if present
-        if (row.attributes.style) {{
-          row.attributes.style = row.attributes.style.replace(/display\\s*:\\s*none;?/i, "").trim();
-        }}
-      }} else {{
-        const existing = row.attributes.style || "";
-        if (!/display\\s*:\\s*none/i.test(existing)) {{
-          row.attributes.style = (existing + ";display:none;").replace(/^;+/,"").trim();
-        }}
-      }}
+      el.style.display = (matchType && matchLevel && matchRevisit) ? "" : "none";
     }});
-
-    // re-render so simple-datatables updates paging/search counts
-    if (typeof dataTable.update === "function") {{
-      dataTable.update();
-    }}
   }}
 
+  typeFilter.addEventListener("change", applyFilters);
   levelFilter.addEventListener("change", applyFilters);
   revisitFilter.addEventListener("change", applyFilters);
 }});
@@ -278,7 +271,7 @@ document.addEventListener("DOMContentLoaded", function() {{
 """
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print("✅ index.html (Dashboard) generated successfully!")
+    print("✅ index.html (Dashboard) generated successfully with Type filter (no column)!")
 
 
 # -----------------------------
