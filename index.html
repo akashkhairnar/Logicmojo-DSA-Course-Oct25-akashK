@@ -120,8 +120,8 @@ document.addEventListener("DOMContentLoaded", function() {
       const level = row.cells[3].textContent.trim().toLowerCase();
       const revisit = row.cells[5].textContent.trim().toLowerCase();
 
-      const matchLevel = !levelVal or level === levelVal;
-      const matchRevisit = !revisitVal or revisit === revisitVal;
+      const matchLevel = !levelVal || level === levelVal;
+      const matchRevisit = !revisitVal || revisit === revisitVal;
 
       if (!(matchLevel && matchRevisit)) {
         dataTable.rows().hide([index]);
