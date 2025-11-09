@@ -23,21 +23,28 @@ select {
 table {
   width: 100%;
   border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed; /* ✅ ensures header & body align perfectly */
   background: white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   border-radius: 6px;
+  overflow: hidden;
+}
+th, td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  word-wrap: break-word;
 }
 th {
   background: #007bff;
   color: white;
-  padding: 10px;
+  font-weight: bold;
+  position: sticky; /* ✅ header stays fixed when scrolling */
+  top: 0;
+  z-index: 1;
 }
-td {
-  text-align: left;
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-}
-tr:hover {
+tbody tr:hover {
   background-color: #f1f1f1;
 }
 .level-easy {
@@ -114,19 +121,38 @@ document.addEventListener("DOMContentLoaded", function() {
     const levelVal = levelFilter.value.toLowerCase();
     const revisitVal = revisitFilter.value.toLowerCase();
 
-    dataTable.rows().show();
+    const rows = dataTable.data.data; // internal data model
 
-    dataTable.data.forEach((row, index) => {
-      const level = row.cells[3].textContent.trim().toLowerCase();
-      const revisit = row.cells[5].textContent.trim().toLowerCase();
+    rows.forEach((row) => {
+      const getCellText = (cell) => {
+        if (!cell) return "";
+        if (typeof cell === "string") return cell;
+        if (cell.text !== undefined) return String(cell.text);
+        if (cell.data !== undefined) return String(cell.data);
+        return "";
+      };
+
+      const level = (getCellText(row.cells[3]) || "").trim().toLowerCase();
+      const revisit = (getCellText(row.cells[5]) || "").trim().toLowerCase();
 
       const matchLevel = !levelVal || level === levelVal;
       const matchRevisit = !revisitVal || revisit === revisitVal;
 
-      if (!(matchLevel && matchRevisit)) {
-        dataTable.rows().hide([index]);
+      if (!row.attributes) row.attributes = {};
+
+      if (matchLevel && matchRevisit) {
+        if (row.attributes.style) {
+          row.attributes.style = row.attributes.style.replace(/display\s*:\s*none;?/i, "").trim();
+        }
+      } else {
+        const existing = row.attributes.style || "";
+        if (!/display\s*:\s*none/i.test(existing)) {
+          row.attributes.style = (existing + ";display:none;").replace(/^;+/,"").trim();
+        }
       }
     });
+
+    dataTable.update(); // re-render with filters applied
   }
 
   levelFilter.addEventListener("change", applyFilters);
