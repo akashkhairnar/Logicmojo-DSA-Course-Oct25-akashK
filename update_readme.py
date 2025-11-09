@@ -227,10 +227,11 @@ document.addEventListener("DOMContentLoaded", function() {{
   const revisitFilter = document.getElementById("revisitFilter");
 
   function applyFilters() {{
-    const levelVal = levelFilter.value.toLowerCase();
-    const revisitVal = revisitFilter.value.toLowerCase();
+    const levelVal = (levelFilter.value || "").toLowerCase();
+    const revisitVal = (revisitFilter.value || "").toLowerCase();
 
-    const rows = dataTable.data.data;
+    const rows = dataTable.data && dataTable.data.data ? dataTable.data.data : [];
+
     rows.forEach((row) => {{
       const getText = (cell) => {{
         if (!cell) return "";
@@ -241,12 +242,30 @@ document.addEventListener("DOMContentLoaded", function() {{
       }};
       const level = (getText(row.cells[3]) || "").trim().toLowerCase();
       const revisit = (getText(row.cells[5]) || "").trim().toLowerCase();
-      const matchLevel = !levelVal or level == levelVal;
-      const matchRevisit = !revisitVal or revisit == revisitVal;
+
+      const matchLevel = (!levelVal) || (level === levelVal);
+      const matchRevisit = (!revisitVal) || (revisit === revisitVal);
+
       if (!row.attributes) row.attributes = {{}};
-      row.attributes.style = (matchLevel and matchRevisit) ? "" : "display:none;";
+
+      // show if both match, otherwise hide
+      if (matchLevel && matchRevisit) {{
+        // remove display:none if present
+        if (row.attributes.style) {{
+          row.attributes.style = row.attributes.style.replace(/display\\s*:\\s*none;?/i, "").trim();
+        }}
+      }} else {{
+        const existing = row.attributes.style || "";
+        if (!/display\\s*:\\s*none/i.test(existing)) {{
+          row.attributes.style = (existing + ";display:none;").replace(/^;+/,"").trim();
+        }}
+      }}
     }});
-    dataTable.update();
+
+    // re-render so simple-datatables updates paging/search counts
+    if (typeof dataTable.update === "function") {{
+      dataTable.update();
+    }}
   }}
 
   levelFilter.addEventListener("change", applyFilters);
