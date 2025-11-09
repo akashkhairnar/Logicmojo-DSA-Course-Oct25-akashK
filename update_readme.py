@@ -79,7 +79,7 @@ def generate_html():
                 problem_cell = f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
                 code_cell = f'<a href="{path}" target="_blank">Code</a>'
 
-                # 🎨 Add color-coded level badges
+                # 🎨 Color-coded levels
                 level_class = ""
                 if level.lower() == "easy":
                     level_class = "level-easy"
@@ -123,12 +123,22 @@ table {{
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  table-layout: fixed; /* ✅ ensures header & body align perfectly */
+  table-layout: fixed;
   background: white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   border-radius: 6px;
   overflow: hidden;
 }}
+
+/* 🎯 Optimized column widths */
+th:nth-child(1), td:nth-child(1) {{ width: 5%; }}   /* # */
+th:nth-child(2), td:nth-child(2) {{ width: 15%; }}  /* Problem */
+th:nth-child(3), td:nth-child(3) {{ width: 8%; }}   /* Solution */
+th:nth-child(4), td:nth-child(4) {{ width: 8%; }}   /* Level */
+th:nth-child(5), td:nth-child(5) {{ width: 20%; }}  /* Pattern */
+th:nth-child(6), td:nth-child(6) {{ width: 8%; }}   /* Revisit */
+th:nth-child(7), td:nth-child(7) {{ width: 36%; }}  /* Quick Notes */
+
 th, td {{
   text-align: left;
   padding: 10px;
@@ -139,7 +149,7 @@ th {{
   background: #007bff;
   color: white;
   font-weight: bold;
-  position: sticky; /* ✅ header stays fixed when scrolling */
+  position: sticky;
   top: 0;
   z-index: 1;
 }}
@@ -220,38 +230,23 @@ document.addEventListener("DOMContentLoaded", function() {{
     const levelVal = levelFilter.value.toLowerCase();
     const revisitVal = revisitFilter.value.toLowerCase();
 
-    const rows = dataTable.data.data; // internal data model
-
+    const rows = dataTable.data.data;
     rows.forEach((row) => {{
-      const getCellText = (cell) => {{
+      const getText = (cell) => {{
         if (!cell) return "";
         if (typeof cell === "string") return cell;
         if (cell.text !== undefined) return String(cell.text);
         if (cell.data !== undefined) return String(cell.data);
         return "";
       }};
-
-      const level = (getCellText(row.cells[3]) || "").trim().toLowerCase();
-      const revisit = (getCellText(row.cells[5]) || "").trim().toLowerCase();
-
-      const matchLevel = !levelVal || level === levelVal;
-      const matchRevisit = !revisitVal || revisit === revisitVal;
-
+      const level = (getText(row.cells[3]) || "").trim().toLowerCase();
+      const revisit = (getText(row.cells[5]) || "").trim().toLowerCase();
+      const matchLevel = !levelVal or level == levelVal;
+      const matchRevisit = !revisitVal or revisit == revisitVal;
       if (!row.attributes) row.attributes = {{}};
-
-      if (matchLevel && matchRevisit) {{
-        if (row.attributes.style) {{
-          row.attributes.style = row.attributes.style.replace(/display\\s*:\\s*none;?/i, "").trim();
-        }}
-      }} else {{
-        const existing = row.attributes.style || "";
-        if (!/display\\s*:\\s*none/i.test(existing)) {{
-          row.attributes.style = (existing + ";display:none;").replace(/^;+/,"").trim();
-        }}
-      }}
+      row.attributes.style = (matchLevel and matchRevisit) ? "" : "display:none;";
     }});
-
-    dataTable.update(); // re-render with filters applied
+    dataTable.update();
   }}
 
   levelFilter.addEventListener("change", applyFilters);
@@ -268,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function() {{
 
 
 # -----------------------------
-# 4️⃣ Update README with Dashboard link
+# 4️⃣ Update README
 # -----------------------------
 def update_readme():
     """Generate README.md with a dashboard link"""
@@ -291,7 +286,7 @@ Automatically generated table of solved problems.
 
 
 # -----------------------------
-# 5️⃣ Main entry point
+# 5️⃣ Main
 # -----------------------------
 if __name__ == "__main__":
     update_readme()
