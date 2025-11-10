@@ -1,154 +1,143 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSA Dashboard</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
-<style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 40px;
-  background: #f8f9fa;
-}
-h1 {
-  text-align: center;
-  color: #333;
-}
-select {
-  margin: 10px;
-  padding: 5px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border-radius: 6px;
-  overflow: hidden;
-}
-th:nth-child(1), td:nth-child(1) { width: 5%; }
-th:nth-child(2), td:nth-child(2) { width: 20%; }
-th:nth-child(3), td:nth-child(3) { width: 8%; }
-th:nth-child(4), td:nth-child(4) { width: 8%; }
-th:nth-child(5), td:nth-child(5) { width: 20%; }
-th:nth-child(6), td:nth-child(6) { width: 8%; }
-th:nth-child(7), td:nth-child(7) { width: 26%; }
-th, td {
-  text-align: left;
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  word-wrap: break-word;
-}
-th {
-  background: #007bff;
-  color: white;
-  font-weight: bold;
-  position: sticky;
-  top: 0;
-}
-tbody tr:hover {
-  background-color: #f1f1f1;
-}
-.level-easy {
-  background: #d4edda;
-  color: #155724;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.level-medium {
-  background: #fff3cd;
-  color: #856404;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.level-hard {
-  background: #f8d7da;
-  color: #721c24;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-</style>
-</head>
-<body>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>DSA Dashboard</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                background: #f8f9fa;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+                vertical-align: top;
+            }
+            th {
+                background: #343a40;
+                color: white;
+            }
+            tr:nth-child(even) { background: #f2f2f2; }
+            tr:hover { background-color: #e8f0fe; }
+            select {
+                padding: 5px;
+                margin-right: 10px;
+            }
+            .editable {
+                background-color: #fff9c4;
+                cursor: text;
+            }
+            #saveChanges {
+                padding: 10px 20px;
+                font-size: 16px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+            #saveChanges:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>📘 DSA Dashboard</h2>
+        <div>
+            <label>Filter by Level:</label>
+            <select id="levelFilter">
+                <option value="all">All</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
 
-<h1>📘 DSA Problem Dashboard</h1>
+            <label>Filter by Revisit:</label>
+            <select id="revisitFilter">
+                <option value="all">All</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
 
-<div style="text-align:center;">
-  <label>Filter by Type:</label>
-  <select id="typeFilter">
-    <option value="">All</option>
-    <option value="array">Array</option>
-  </select>
+            <label>Filter by Type:</label>
+            <select id="typeFilter">
+                <option value="all">All</option>
+                <option value='Array'>Array</option>
+            </select>
+        </div>
 
-  <label>Filter by Level:</label>
-  <select id="levelFilter">
-    <option value="">All</option>
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-  </select>
+        <table id="problemsTable">
+            <thead>
+                <tr>
+                    <th style="width:5%;">#</th>
+                    <th style="width:10%;">Type</th>
+                    <th style="width:25%;">Problem</th>
+                    <th style="width:15%;">Level</th>
+                    <th style="width:15%;">Pattern</th>
+                    <th style="width:10%;">Revisit</th>
+                    <th style="width:20%;">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-level='easy' data-revisit='no' data-type='array'><td>1</td><td>Array</td><td><a href='dsa/Array/TwoSum.java' target='_blank'>Two Sum</a></td><td contenteditable='true' class='editable level'>Easy</td><td>TwoSum</td><td contenteditable='true' class='editable revisit'>No</td><td contenteditable='true' class='editable notes'>Use map to store num[i],index.</td></tr><tr data-level='easy' data-revisit='yes' data-type='array'><td>2</td><td>Array</td><td><a href='dsa/Array/MoveZeros.java' target='_blank'>Move Zeroes</a></td><td contenteditable='true' class='editable level'>Easy</td><td>MoveZeros</td><td contenteditable='true' class='editable revisit'>Yes</td><td contenteditable='true' class='editable notes'>Count zeros and if count>0 then swap number by that much index</td></tr>
+            </tbody>
+        </table>
 
-  <label>Filter by Revisit:</label>
-  <select id="revisitFilter">
-    <option value="">All</option>
-    <option value="yes">Yes</option>
-    <option value="no">No</option>
-  </select>
-</div>
+        <div style="text-align:center; margin-top:20px;">
+            <button id="saveChanges">💾 Save Changes</button>
+        </div>
 
-<table id="problemsTable" class="datatable">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Problem</th>
-      <th>Solution</th>
-      <th>Level</th>
-      <th>Pattern</th>
-      <th>Revisit</th>
-      <th>Quick Notes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr data-type='array' data-level='easy' data-revisit='yes'><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>Yes</td><td>Count zeros and if count>0 then swap number by that much index</td></tr><tr data-type='array' data-level='easy' data-revisit='no'><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>HashMap (Complement Pattern)</td><td>No</td><td>Use map to store num[i],index.</td></tr>
-  </tbody>
-</table>
+        <script>
+        const levelFilter = document.getElementById("levelFilter");
+        const revisitFilter = document.getElementById("revisitFilter");
+        const typeFilter = document.getElementById("typeFilter");
 
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  const typeFilter = document.getElementById("typeFilter");
-  const levelFilter = document.getElementById("levelFilter");
-  const revisitFilter = document.getElementById("revisitFilter");
-  const table = document.querySelector("#problemsTable");
-  const dataTable = new simpleDatatables.DataTable(table);
+        function applyFilters() {
+            const levelVal = levelFilter.value;
+            const revisitVal = revisitFilter.value;
+            const typeVal = typeFilter.value;
 
-  function applyFilters() {
-    const typeVal = (typeFilter.value || "").toLowerCase();
-    const levelVal = (levelFilter.value || "").toLowerCase();
-    const revisitVal = (revisitFilter.value || "").toLowerCase();
+            document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
+                const matchesLevel = (levelVal === "all" || row.dataset.level === levelVal);
+                const matchesRevisit = (revisitVal === "all" || row.dataset.revisit === revisitVal);
+                const matchesType = (typeVal === "all" || row.dataset.type === typeVal);
+                row.style.display = (matchesLevel && matchesRevisit && matchesType) ? "" : "none";
+            });
+        }
 
-    // Loop through all table rows
-    table.querySelectorAll("tbody tr").forEach(row => {
-      const rowType = row.getAttribute("data-type") || "";
-      const rowLevel = row.getAttribute("data-level") || "";
-      const rowRevisit = row.getAttribute("data-revisit") || "";
+        [levelFilter, revisitFilter, typeFilter].forEach(f => f.addEventListener("change", applyFilters));
 
-      const matchType = !typeVal || rowType === typeVal;
-      const matchLevel = !levelVal || rowLevel === levelVal;
-      const matchRevisit = !revisitVal || rowRevisit === revisitVal;
+        document.getElementById("saveChanges").addEventListener("click", () => {
+            const updates = [];
+            document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
+                const link = row.querySelector("td:nth-child(3) a");
+                if (!link) return;
+                const path = link.getAttribute("href");
+                const level = row.querySelector(".level").textContent.trim();
+                const revisit = row.querySelector(".revisit").textContent.trim();
+                const notes = row.querySelector(".notes").textContent.trim();
 
-      row.style.display = (matchType && matchLevel && matchRevisit) ? "" : "none";
-    });
-  }
+                updates.push({ path, level, revisit, notes });
+            });
 
-  [typeFilter, levelFilter, revisitFilter].forEach(f => f.addEventListener("change", applyFilters));
-});
-</script>
-
-</body>
-</html>
+            const blob = new Blob([JSON.stringify(updates, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "updates.json";
+            a.click();
+        });
+        </script>
+    </body>
+    </html>
+    
