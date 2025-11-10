@@ -76,7 +76,8 @@ def generate_html():
         for file in sorted(files):
             if file.endswith(".java"):
                 relative_path = os.path.relpath(root, ROOT)
-                problem_type = relative_path.split(os.sep)[0] if relative_path != "." else "general"
+                # ✅ FIXED: normalize type to lowercase and strip "./" or "\\" 
+                problem_type = relative_path.split(os.sep)[0].lower().strip("./\\") if relative_path and relative_path != "." else "general"
                 type_set.add(problem_type)
 
                 path = os.path.join(root, file)
@@ -94,6 +95,7 @@ def generate_html():
 
                 level_cell = f'<span class="{level_class}">{level}</span>'
 
+                # ✅ FIXED: add normalized data attributes for JS filters
                 rows_html.append(
                     f"<tr data-type='{problem_type}' data-level='{level.lower()}' data-revisit='{revisit.lower()}'>"
                     f"<td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
@@ -104,7 +106,11 @@ def generate_html():
     if not type_set:
         type_set.add("general")
 
-    type_options_html = "\n".join([f'<option value="{t}">{t.capitalize()}</option>' for t in sorted(type_set)])
+    # ✅ FIXED: ensure dropdown values match data-type attributes (lowercase)
+    type_options_html = "\n".join([
+        f'<option value="{t.lower()}">{t.capitalize()}</option>' for t in sorted(type_set)
+    ])
+
 
     html_content = f"""
 <!DOCTYPE html>
