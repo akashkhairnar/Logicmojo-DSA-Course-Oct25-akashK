@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-
 """
-dashboard.py - Fixed version with JS safely inside Python strings
+DSA Dashboard with direct GitHub save
 """
 
 import os
 import subprocess
-from flask import Flask, request, jsonify, render_template_string
 from pathlib import Path
+from flask import Flask, request, jsonify, render_template_string
 
+# ----------------- CONFIG -----------------
 ROOT = "dsa"
 README_PATH = "README.md"
 HTML_PATH = "index.html"
 BRANCH = "master"
 
-ADMIN_TOKEN_ENV = os.getenv("ADMIN_TOKEN")
-GITHUB_TOKEN_ENV = os.getenv("GITHUB_TOKEN")
+# Environment variables for security
+ADMIN_TOKEN_ENV = os.getenv("ADMIN_TOKEN", "admin123")  # default token, override with env
+GITHUB_TOKEN_ENV = os.getenv("GH_TOKEN")  # store your GitHub token as secret
 
 app = Flask(__name__)
 
-# ---------------- Helper functions ----------------
+# ----------------- HELPERS -----------------
 def extract_metadata(file_path):
     problem = level = revisit = notes = ""
     try:
@@ -100,50 +101,54 @@ def apply_updates(updates):
         except Exception as e:
             print(f"Failed to update {file_path}: {e}")
 
-def git_commit_push(message="auto: dashboard update"):
+def git_commit_push(message="Update from dashboard"):
     if not GITHUB_TOKEN_ENV: return
     try:
-        subprocess.run(["git","add","."],check=True)
-        subprocess.run(["git","commit","-m",message],check=True)
-        repo_url=subprocess.check_output(["git","config","--get","remote.origin.url"],encoding="utf-8").strip()
+        subprocess.run(["git","add",".","-A"], check=True)
+        subprocess.run(["git","commit","-m", message], check=True)
+        repo_url = subprocess.check_output(["git","config","--get","remote.origin.url"], encoding="utf-8").strip()
         if repo_url.startswith("https://"):
-            parts=repo_url.split("https://")
-            token_url=f"https://{GITHUB_TOKEN_ENV}@{parts[1]}"
-        else: token_url=repo_url
-        subprocess.run(["git","push",token_url,BRANCH],check=True)
+            token_url = f"https://{GITHUB_TOKEN_ENV}@{repo_url[8:]}"
+        else:
+            token_url = repo_url
+        subprocess.run(["git","push", token_url, BRANCH], check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Git push failed: {e}")
+        print("Git push failed:", e)
 
-# ---------------- Flask routes ----------------
+# ----------------- FLASK ROUTES -----------------
 @app.route("/")
 def index():
     return render_dashboard_html()
 
-@app.route("/save",methods=["POST"])
+@app.route("/save", methods=["POST"])
 def save():
-    data=request.get_json()
-    token=data.get("admin_token","")
-    if token != ADMIN_TOKEN_ENV: return jsonify({"status":"error","msg":"Invalid admin token"}),403
-    updates=data.get("updates",[])
+    data = request.get_json()
+    token = data.get("admin_token","")
+    if token != ADMIN_TOKEN_ENV:
+        return jsonify({"status":"error","msg":"Invalid admin token"}),403
+    updates = data.get("updates", [])
     apply_updates(updates)
+    # Update README
     with open(README_PATH,"w",encoding="utf-8") as f:
         f.write(generate_table_md())
+    git_commit_push("Update from dashboard")
     render_dashboard_html(write=True)
-    git_commit_push()
-    return jsonify({"status":"success","msg":"Updates applied successfully"})
+    return jsonify({"status":"success","msg":"Changes saved to GitHub!"})
 
-@app.route("/update_admin",methods=["POST"])
+@app.route("/update_admin", methods=["POST"])
 def update_admin():
-    data=request.get_json()
-    token=data.get("admin_token","")
-    new_token=data.get("new_token","").strip()
+    data = request.get_json()
+    token = data.get("admin_token","")
+    new_token = data.get("new_token","").strip()
     global ADMIN_TOKEN_ENV
-    if token != ADMIN_TOKEN_ENV: return jsonify({"status":"error","msg":"Invalid admin token"}),403
-    if not new_token: return jsonify({"status":"error","msg":"New token required"}),400
+    if token != ADMIN_TOKEN_ENV:
+        return jsonify({"status":"error","msg":"Invalid admin token"}),403
+    if not new_token:
+        return jsonify({"status":"error","msg":"New token required"}),400
     ADMIN_TOKEN_ENV = new_token
     return jsonify({"status":"success","msg":"Admin token updated successfully"})
 
-# ---------------- Dashboard HTML ----------------
+# ----------------- DASHBOARD HTML -----------------
 def render_dashboard_html(write=False):
     rows_html=[]
     type_set=set()
@@ -270,7 +275,7 @@ changeTokenBtn.addEventListener('click',async()=>{
             f.write(html_template)
     return html_template
 
-# ---------------- Main ----------------
+# ----------------- MAIN -----------------
 if __name__=="__main__":
     with open(README_PATH,"w",encoding="utf-8") as f:
         f.write(generate_table_md())
