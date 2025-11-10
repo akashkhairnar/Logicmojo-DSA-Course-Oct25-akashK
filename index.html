@@ -1,143 +1,190 @@
 
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>DSA Dashboard</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 30px;
-                background: #f8f9fa;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-                background: white;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-                vertical-align: top;
-            }
-            th {
-                background: #343a40;
-                color: white;
-            }
-            tr:nth-child(even) { background: #f2f2f2; }
-            tr:hover { background-color: #e8f0fe; }
-            select {
-                padding: 5px;
-                margin-right: 10px;
-            }
-            .editable {
-                background-color: #fff9c4;
-                cursor: text;
-            }
-            #saveChanges {
-                padding: 10px 20px;
-                font-size: 16px;
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-            }
-            #saveChanges:hover {
-                background-color: #0056b3;
-            }
-        </style>
-    </head>
-    <body>
-        <h2>📘 DSA Dashboard</h2>
-        <div>
-            <label>Filter by Level:</label>
-            <select id="levelFilter">
-                <option value="all">All</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-            </select>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Dashboard</title>
+<style>
+:root {
+  --bg-color: #f5f6fa;
+  --card-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --text-color: #333;
+  --accent: #6c63ff;
+}
+body {
+  font-family: "Inter", Arial, sans-serif;
+  margin: 40px;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+h1 {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 25px;
+}
+.container {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  padding: 25px;
+}
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+}
+button {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  background: #554ef0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+th {
+  background: var(--accent);
+  color: white;
+  text-align: left;
+  padding: 10px;
+}
+td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px;
+}
+tr:hover {
+  background: #f2f2ff;
+}
+.hidden {
+  display: none;
+}
+.editable {
+  background: #fdf8d3;
+}
+</style>
+</head>
+<body>
 
-            <label>Filter by Revisit:</label>
-            <select id="revisitFilter">
-                <option value="all">All</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-            </select>
+<h1>📘 DSA Problem Dashboard</h1>
+<div class="container">
+  <div class="filters">
+    <label>Level:</label>
+    <select id="levelFilter">
+      <option value="">All</option>
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <label>Revisit:</label>
+    <select id="revisitFilter">
+      <option value="">All</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+    <label>Type:</label>
+    <select id="typeFilter">
+      <option value="">All</option>
+      <option value='array'>Array</option>
+    </select>
+    <button id="editBtn">✏️ Edit Mode</button>
+    <button id="saveBtn" class="hidden">💾 Save</button>
+    <button id="cancelBtn" class="hidden">❌ Cancel</button>
+  </div>
 
-            <label>Filter by Type:</label>
-            <select id="typeFilter">
-                <option value="all">All</option>
-                <option value='Array'>Array</option>
-            </select>
-        </div>
+  <table id="problemsTable">
+    <thead>
+      <tr>
+        <th style="width:5%;">#</th>
+        <th style="width:15%;">Problem</th>
+        <th style="width:10%;">Solution</th>
+        <th style="width:15%;">Level</th>
+        <th style="width:20%;">Pattern</th>
+        <th style="width:10%;">Revisit</th>
+        <th style="width:25%;">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-level='easy' data-revisit='yes' data-type='array'><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td>Easy</td><td>Two Pointer</td><td>Yes</td><td>Count zeros and if count>0 then swap number by that much index</td></tr><tr data-level='easy' data-revisit='no' data-type='array'><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td>Easy</td><td>HashMap (Complement Pattern)</td><td>No</td><td>Use map to store num[i],index.</td></tr>
+    </tbody>
+  </table>
+</div>
 
-        <table id="problemsTable">
-            <thead>
-                <tr>
-                    <th style="width:5%;">#</th>
-                    <th style="width:10%;">Type</th>
-                    <th style="width:25%;">Problem</th>
-                    <th style="width:15%;">Level</th>
-                    <th style="width:15%;">Pattern</th>
-                    <th style="width:10%;">Revisit</th>
-                    <th style="width:20%;">Notes</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-level='easy' data-revisit='no' data-type='array'><td>1</td><td>Array</td><td><a href='dsa/Array/TwoSum.java' target='_blank'>Two Sum</a></td><td contenteditable='true' class='editable level'>Easy</td><td>TwoSum</td><td contenteditable='true' class='editable revisit'>No</td><td contenteditable='true' class='editable notes'>Use map to store num[i],index.</td></tr><tr data-level='easy' data-revisit='yes' data-type='array'><td>2</td><td>Array</td><td><a href='dsa/Array/MoveZeros.java' target='_blank'>Move Zeroes</a></td><td contenteditable='true' class='editable level'>Easy</td><td>MoveZeros</td><td contenteditable='true' class='editable revisit'>Yes</td><td contenteditable='true' class='editable notes'>Count zeros and if count>0 then swap number by that much index</td></tr>
-            </tbody>
-        </table>
+<script>
+const levelFilter = document.getElementById("levelFilter");
+const revisitFilter = document.getElementById("revisitFilter");
+const typeFilter = document.getElementById("typeFilter");
 
-        <div style="text-align:center; margin-top:20px;">
-            <button id="saveChanges">💾 Save Changes</button>
-        </div>
+function applyFilters() {
+  const levelVal = levelFilter.value;
+  const revisitVal = revisitFilter.value;
+  const typeVal = typeFilter.value;
+  document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
+    const matchesLevel = !levelVal || row.dataset.level === levelVal;
+    const matchesRevisit = !revisitVal || row.dataset.revisit === revisitVal;
+    const matchesType = !typeVal || row.dataset.type === typeVal;
+    row.style.display = (matchesLevel && matchesRevisit && matchesType) ? "" : "none";
+  });
+}
 
-        <script>
-        const levelFilter = document.getElementById("levelFilter");
-        const revisitFilter = document.getElementById("revisitFilter");
-        const typeFilter = document.getElementById("typeFilter");
+[levelFilter, revisitFilter, typeFilter].forEach(f => f.addEventListener("change", applyFilters));
 
-        function applyFilters() {
-            const levelVal = levelFilter.value;
-            const revisitVal = revisitFilter.value;
-            const typeVal = typeFilter.value;
+const editBtn = document.getElementById("editBtn");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 
-            document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
-                const matchesLevel = (levelVal === "all" || row.dataset.level === levelVal);
-                const matchesRevisit = (revisitVal === "all" || row.dataset.revisit === revisitVal);
-                const matchesType = (typeVal === "all" || row.dataset.type === typeVal);
-                row.style.display = (matchesLevel && matchesRevisit && matchesType) ? "" : "none";
-            });
-        }
+editBtn.addEventListener("click", () => {
+  document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
+    row.querySelectorAll("td:nth-child(4), td:nth-child(6), td:nth-child(7)").forEach(td => {
+      td.contentEditable = "true";
+      td.classList.add("editable");
+    });
+  });
+  editBtn.classList.add("hidden");
+  saveBtn.classList.remove("hidden");
+  cancelBtn.classList.remove("hidden");
+});
 
-        [levelFilter, revisitFilter, typeFilter].forEach(f => f.addEventListener("change", applyFilters));
+cancelBtn.addEventListener("click", () => {
+  window.location.reload();
+});
 
-        document.getElementById("saveChanges").addEventListener("click", () => {
-            const updates = [];
-            document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
-                const link = row.querySelector("td:nth-child(3) a");
-                if (!link) return;
-                const path = link.getAttribute("href");
-                const level = row.querySelector(".level").textContent.trim();
-                const revisit = row.querySelector(".revisit").textContent.trim();
-                const notes = row.querySelector(".notes").textContent.trim();
+saveBtn.addEventListener("click", () => {
+  const updates = [];
+  document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
+    const codeLink = row.querySelector("td:nth-child(3) a");
+    if (!codeLink) return;
+    const path = codeLink.getAttribute("href");
+    const level = row.querySelector("td:nth-child(4)").textContent.trim();
+    const revisit = row.querySelector("td:nth-child(6)").textContent.trim();
+    const notes = row.querySelector("td:nth-child(7)").textContent.trim();
+    updates.push({ path, level, revisit, notes });
+  });
+  const blob = new Blob([JSON.stringify(updates, null, 2)], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "updates.json";
+  a.click();
+});
+</script>
 
-                updates.push({ path, level, revisit, notes });
-            });
-
-            const blob = new Blob([JSON.stringify(updates, null, 2)], { type: "application/json" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "updates.json";
-            a.click();
-        });
-        </script>
-    </body>
-    </html>
-    
+</body>
+</html>
