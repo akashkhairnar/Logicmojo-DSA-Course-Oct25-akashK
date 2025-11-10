@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-dashboard.py - Fixed & Full Version
+dashboard.py - Fixed version with JS safely inside Python strings
 """
 
 import os
@@ -8,7 +8,6 @@ import subprocess
 from flask import Flask, request, jsonify, render_template_string
 from pathlib import Path
 
-# ---------------- Configuration ----------------
 ROOT = "dsa"
 README_PATH = "README.md"
 HTML_PATH = "index.html"
@@ -23,19 +22,17 @@ app = Flask(__name__)
 def extract_metadata(file_path):
     problem = level = revisit = notes = ""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path,"r",encoding="utf-8") as f:
             for _ in range(50):
                 line = f.readline()
-                if not line:
-                    break
+                if not line: break
                 s = line.strip()
-                if s.startswith("// Problem:"): problem = s.replace("// Problem:","").strip()
-                elif s.startswith("// Level:"): level = s.replace("// Level:","").strip()
-                elif s.startswith("// Revisit:"): revisit = s.replace("// Revisit:","").strip()
-                elif s.startswith("// Notes:"): notes = s.replace("// Notes:","").strip()
+                if s.startswith("// Problem:"): problem=s.replace("// Problem:","").strip()
+                elif s.startswith("// Level:"): level=s.replace("// Level:","").strip()
+                elif s.startswith("// Revisit:"): revisit=s.replace("// Revisit:","").strip()
+                elif s.startswith("// Notes:"): notes=s.replace("// Notes:","").strip()
                 if problem and level and revisit and notes: break
-    except:
-        pass
+    except: pass
     return problem, level, revisit, notes
 
 def ensure_type(s):
@@ -45,11 +42,11 @@ def ensure_type(s):
 def generate_table_md():
     rows = []
     count = 1
-    for root, _, files in os.walk(ROOT):
+    for root,_,files in os.walk(ROOT):
         for file in sorted(files):
             if file.endswith(".java"):
                 path = os.path.join(root,file)
-                problem, level, revisit, notes = extract_metadata(path)
+                problem,level,revisit,notes = extract_metadata(path)
                 problem_display = problem or file.replace(".java","")
                 rel_path = os.path.relpath(path)
                 github_link = f"[Code]({rel_path})"
@@ -178,26 +175,27 @@ def render_dashboard_html(write=False):
                 )
                 count+=1
     type_options_html="\n".join([f"<option value='{t}'>{t.title()}</option>" for t in sorted(type_set)])
-    html_template=f"""<!DOCTYPE html>
+    html_template="""
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DSA Dashboard</title>
 <style>
-body{{font-family:sans-serif;background:#f5f6f8;margin:20px;}}
-table{{width:100%;border-collapse:collapse;table-layout:fixed;}}
-th,td{{padding:8px;border-bottom:1px solid #ddd;overflow-wrap:break-word;}}
-th{{background:#eee;text-align:left;}}
-.editable-cell{{background:#f9f7ff;border-radius:4px;}}
-.editable-cell[contenteditable="true"]{{outline:2px solid #7c3aed;background:#f2ebff;}}
-select,button{{padding:6px 10px;margin:4px;border-radius:4px;}}
+body{font-family:sans-serif;background:#f5f6f8;margin:20px;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+th,td{padding:8px;border-bottom:1px solid #ddd;overflow-wrap:break-word;}
+th{background:#eee;text-align:left;}
+.editable-cell{background:#f9f7ff;border-radius:4px;}
+.editable-cell[contenteditable="true"]{outline:2px solid #7c3aed;background:#f2ebff;}
+select,button{padding:6px 10px;margin:4px;border-radius:4px;}
 </style>
 </head>
 <body>
 <h1>DSA Dashboard</h1>
 <div>
-Type: <select id="typeFilter"><option value="">All Types</option>{type_options_html}</select>
+Type: <select id="typeFilter"><option value="">All Types</option>""" + type_options_html + """</select>
 Level: <select id="levelFilter"><option value="">All</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
 Revisit: <select id="revisitFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
 <button id="editToggle">Edit Mode</button>
@@ -207,7 +205,7 @@ Revisit: <select id="revisitFilter"><option value="">All</option><option value="
 <table id="problemsTable"><thead><tr>
 <th>#</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Notes</th>
 </tr></thead><tbody>
-{''.join(rows_html)}
+""" + ''.join(rows_html) + """
 </tbody></table>
 <script>
 let editMode=false;
@@ -216,17 +214,17 @@ const editToggle=document.getElementById('editToggle');
 const saveBtn=document.getElementById('saveBtn');
 const changeTokenBtn=document.getElementById('changeTokenBtn');
 
-function applyFilters(){{
+function applyFilters(){
     let typeVal=document.getElementById('typeFilter').value.toLowerCase();
     let levelVal=document.getElementById('levelFilter').value.toLowerCase();
     let revisitVal=document.getElementById('revisitFilter').value.toLowerCase();
-    table.querySelectorAll('tr').forEach(row=>{{
+    table.querySelectorAll('tr').forEach(row=>{
         let rowType=row.getAttribute('data-type')||'';
         let rowLevel=row.getAttribute('data-level')||'';
         let rowRevisit=row.getAttribute('data-revisit')||'';
         row.style.display=( (!typeVal||rowType===typeVal)&&(!levelVal||rowLevel===levelVal)&&(!revisitVal||rowRevisit===revisitVal) )?'':'none';
-    }});
-}}
+    });
+}
 ['typeFilter','levelFilter','revisitFilter'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
 
 editToggle.addEventListener('click',()=>{
@@ -240,14 +238,14 @@ saveBtn.addEventListener('click',async()=>{
     if(!token)return alert("Admin token required");
     let updates=[];
     table.querySelectorAll('tr').forEach(row=>{
-        updates.push({{
+        updates.push({
             path:row.dataset.path,
             level:row.querySelector('td:nth-child(4)').textContent.trim(),
             revisit:row.querySelector('td:nth-child(6)').textContent.trim(),
             notes:row.querySelector('td:nth-child(7)').textContent.trim()
-        }});
+        });
     });
-    let res=await fetch('/save',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{admin_token:token,updates:updates}})}});
+    let res=await fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_token:token,updates:updates})});
     let result=await res.json();
     alert(result.msg);
     if(result.status==="success") location.reload();
@@ -258,10 +256,10 @@ changeTokenBtn.addEventListener('click',async()=>{
     if(!current)return alert("Token required");
     let newToken=prompt("Enter new Admin Token");
     if(!newToken)return alert("New token required");
-    let res=await fetch('/update_admin',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{admin_token:current,new_token:newToken}})}});
+    let res=await fetch('/update_admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_token:current,new_token:newToken})});
     let result=await res.json();
     alert(result.msg);
-}});
+});
 </script>
 </body>
 </html>
