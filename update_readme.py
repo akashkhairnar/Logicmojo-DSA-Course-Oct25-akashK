@@ -75,7 +75,6 @@ def generate_html():
     for root, _, files in os.walk(ROOT):
         for file in sorted(files):
             if file.endswith(".java"):
-                # Extract type from subfolder (like array, linkedlist, etc.)
                 relative_path = os.path.relpath(root, ROOT)
                 problem_type = relative_path.split(os.sep)[0] if relative_path != "." else "general"
                 type_set.add(problem_type)
@@ -96,19 +95,17 @@ def generate_html():
                 level_cell = f'<span class="{level_class}">{level}</span>'
 
                 rows_html.append(
-                    f"<tr data-type='{problem_type}'><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
+                    f"<tr data-type='{problem_type}' data-level='{level.lower()}' data-revisit='{revisit.lower()}'>"
+                    f"<td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
                     f"<td>{level_cell}</td><td>{pattern}</td><td>{revisit}</td><td>{notes}</td></tr>"
                 )
                 count += 1
 
-    # ✅ Ensure at least one default type exists
     if not type_set:
         type_set.add("general")
 
-    # ✅ Generate dropdown options
     type_options_html = "\n".join([f'<option value="{t}">{t.capitalize()}</option>' for t in sorted(type_set)])
 
-    # ✅ HTML content
     html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -232,37 +229,32 @@ tbody tr:hover {{
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {{
-  const table = document.querySelector("#problemsTable");
-  const dataTable = new simpleDatatables.DataTable(table);
-
   const typeFilter = document.getElementById("typeFilter");
   const levelFilter = document.getElementById("levelFilter");
   const revisitFilter = document.getElementById("revisitFilter");
+  const table = document.querySelector("#problemsTable");
+  const dataTable = new simpleDatatables.DataTable(table);
 
   function applyFilters() {{
     const typeVal = (typeFilter.value || "").toLowerCase();
     const levelVal = (levelFilter.value || "").toLowerCase();
     const revisitVal = (revisitFilter.value || "").toLowerCase();
 
-    const rows = dataTable.data && dataTable.data.data ? dataTable.data.data : [];
-
-    rows.forEach((row) => {{
-      const el = row.element;
-      const rowType = el.getAttribute("data-type")?.toLowerCase() || "";
-      const rowLevel = el.querySelector("td:nth-child(4)")?.innerText.toLowerCase() || "";
-      const rowRevisit = el.querySelector("td:nth-child(6)")?.innerText.toLowerCase() || "";
+    // Loop through all table rows
+    table.querySelectorAll("tbody tr").forEach(row => {{
+      const rowType = row.getAttribute("data-type") || "";
+      const rowLevel = row.getAttribute("data-level") || "";
+      const rowRevisit = row.getAttribute("data-revisit") || "";
 
       const matchType = !typeVal || rowType === typeVal;
       const matchLevel = !levelVal || rowLevel === levelVal;
       const matchRevisit = !revisitVal || rowRevisit === revisitVal;
 
-      el.style.display = (matchType && matchLevel && matchRevisit) ? "" : "none";
+      row.style.display = (matchType && matchLevel && matchRevisit) ? "" : "none";
     }});
   }}
 
-  typeFilter.addEventListener("change", applyFilters);
-  levelFilter.addEventListener("change", applyFilters);
-  revisitFilter.addEventListener("change", applyFilters);
+  [typeFilter, levelFilter, revisitFilter].forEach(f => f.addEventListener("change", applyFilters));
 }});
 </script>
 
@@ -271,8 +263,7 @@ document.addEventListener("DOMContentLoaded", function() {{
 """
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print("✅ index.html (Dashboard) generated successfully with Type filter (no column)!")
-
+    print("✅ index.html generated — type, level, and revisit filters all working!")
 
 # -----------------------------
 # 4️⃣ Update README
