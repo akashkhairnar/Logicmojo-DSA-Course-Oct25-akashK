@@ -330,7 +330,7 @@ def apply_updates():
 # 5️⃣ Update README
 # -----------------------------
 def update_readme():
-     """Generate README.md with a working dashboard link to GitHub Pages"""
+    """Generate README.md with a working dashboard link to GitHub Pages"""
     table = generate_table()
     dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
     content = f"""# 🚀 DSA in Java
