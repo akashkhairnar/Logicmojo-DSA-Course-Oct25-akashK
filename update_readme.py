@@ -1,302 +1,256 @@
 import os
+import json
+from datetime import datetime
 
-ROOT = "dsa"  # Folder containing your Java files
-README_PATH = "README.md"
-HTML_PATH = "index.html"
+ROOT = "dsa"  # root folder for your DSA problems
 
-# -----------------------------
-# 1️⃣ Extract metadata
-# -----------------------------
+
 def extract_metadata(file_path):
-    """Extract metadata (Problem, Link, Notes, Level, Time, Revisit) from Java file comments"""
-    problem = "-"
-    link = ""
-    notes = "-"
-    level = "-"
-    pattern = "-"
-    revisit = "-"
-
+    """Extract Problem, Level, Revisit, Notes from the first few comment lines."""
+    problem = level = revisit = notes = ""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line.startswith("// Problem:"):
                     problem = line.replace("// Problem:", "").strip()
-                elif line.startswith("// Link:"):
-                    link = line.replace("// Link:", "").strip()
-                elif line.startswith("// Notes:"):
-                    notes = line.replace("// Notes:", "").strip()
                 elif line.startswith("// Level:"):
                     level = line.replace("// Level:", "").strip()
-                elif line.startswith("// Pattern:"):
-                    pattern = line.replace("// Pattern:", "").strip()
                 elif line.startswith("// Revisit:"):
                     revisit = line.replace("// Revisit:", "").strip()
+                elif line.startswith("// Notes:"):
+                    notes = line.replace("// Notes:", "").strip()
+                if problem and level and revisit and notes:
+                    break
     except Exception as e:
-        print(f"⚠️ Error reading {file_path}: {e}")
-
-    return problem, link, notes, level, pattern, revisit
-
-
-# -----------------------------
-# 2️⃣ Generate Markdown Table (for README)
-# -----------------------------
-def generate_table():
-    """Generate Markdown table for README.md"""
-    rows = []
-    count = 1
-    for root, _, files in os.walk(ROOT):
-        for file in sorted(files):
-            if file.endswith(".java") and ".git" not in root and ".github" not in root:
-                path = os.path.join(root, file)
-                github_link = f"[Code]({path})"
-                problem, link, notes, level, pattern, revisit = extract_metadata(path)
-                problem_display = f"[{problem}]({link})" if link else problem
-                rows.append(
-                    f"| {count} | {problem_display} | {github_link} | {level} | {pattern} | {revisit} | {notes} |"
-                )
-                count += 1
-
-    if not rows:
-        return "No Java files found yet."
-
-    header = "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|"
-    return header + "\n" + "\n".join(rows)
+        print(f"Error reading {file_path}: {e}")
+    return problem, level, revisit, notes
 
 
-# -----------------------------
-# 3️⃣ Generate HTML Dashboard
-# -----------------------------
 def generate_html():
+    """Generate interactive HTML dashboard with filtering and editing support."""
     rows_html = []
     count = 1
     type_set = set()
 
     for root, _, files in os.walk(ROOT):
-        for file in sorted(files):
-            if file.endswith(".java"):
-                relative_path = os.path.relpath(root, ROOT)
-                # ✅ FIXED: normalize type to lowercase and strip "./" or "\\" 
-                problem_type = relative_path.split(os.sep)[0].lower().strip("./\\") if relative_path and relative_path != "." else "general"
-                type_set.add(problem_type)
+        for file in files:
+            if not file.endswith(".java"):
+                continue
+            file_path = os.path.join(root, file)
+            problem, level, revisit, notes = extract_metadata(file_path)
 
-                path = os.path.join(root, file)
-                problem, link, notes, level, pattern, revisit = extract_metadata(path)
-                problem_cell = f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
-                code_cell = f'<a href="{path}" target="_blank">Code</a>'
+            # infer type from folder (like dsa/array/, dsa/linkedlist/, etc.)
+            rel_path = os.path.relpath(file_path, ROOT)
+            type_name = rel_path.split(os.sep)[0] if os.sep in rel_path else "General"
+            type_set.add(type_name)
 
-                level_class = ""
-                if level.lower() == "easy":
-                    level_class = "level-easy"
-                elif level.lower() == "medium":
-                    level_class = "level-medium"
-                elif level.lower() == "hard":
-                    level_class = "level-hard"
+            pattern = file.replace(".java", "")
+            code_link = f"{file_path}"
 
-                level_cell = f'<span class="{level_class}">{level}</span>'
+            rows_html.append(
+                f"<tr data-level='{level.lower()}' data-revisit='{revisit.lower()}' data-type='{type_name.lower()}'>"
+                f"<td>{count}</td>"
+                f"<td>{type_name}</td>"
+                f"<td><a href='{code_link}' target='_blank'>{problem or pattern}</a></td>"
+                f"<td contenteditable='true' class='editable level'>{level}</td>"
+                f"<td>{pattern}</td>"
+                f"<td contenteditable='true' class='editable revisit'>{revisit}</td>"
+                f"<td contenteditable='true' class='editable notes'>{notes}</td>"
+                f"</tr>"
+            )
+            count += 1
 
-                # ✅ FIXED: add normalized data attributes for JS filters
-                rows_html.append(
-                    f"<tr data-type='{problem_type}' data-level='{level.lower()}' data-revisit='{revisit.lower()}'>"
-                    f"<td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
-                    f"<td>{level_cell}</td><td>{pattern}</td><td>{revisit}</td><td>{notes}</td></tr>"
-                )
-                count += 1
-
-    if not type_set:
-        type_set.add("general")
-
-    # ✅ FIXED: ensure dropdown values match data-type attributes (lowercase)
-    type_options_html = "\n".join([
-        f'<option value="{t.lower()}">{t.capitalize()}</option>' for t in sorted(type_set)
-    ])
-
+    type_options_html = "".join(f"<option value='{t}'>{t.title()}</option>" for t in sorted(type_set))
 
     html_content = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSA Dashboard</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
-<style>
-body {{
-  font-family: Arial, sans-serif;
-  margin: 40px;
-  background: #f8f9fa;
-}}
-h1 {{
-  text-align: center;
-  color: #333;
-}}
-select {{
-  margin: 10px;
-  padding: 5px;
-}}
-table {{
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border-radius: 6px;
-  overflow: hidden;
-}}
-th:nth-child(1), td:nth-child(1) {{ width: 5%; }}
-th:nth-child(2), td:nth-child(2) {{ width: 20%; }}
-th:nth-child(3), td:nth-child(3) {{ width: 8%; }}
-th:nth-child(4), td:nth-child(4) {{ width: 8%; }}
-th:nth-child(5), td:nth-child(5) {{ width: 20%; }}
-th:nth-child(6), td:nth-child(6) {{ width: 8%; }}
-th:nth-child(7), td:nth-child(7) {{ width: 26%; }}
-th, td {{
-  text-align: left;
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  word-wrap: break-word;
-}}
-th {{
-  background: #007bff;
-  color: white;
-  font-weight: bold;
-  position: sticky;
-  top: 0;
-}}
-tbody tr:hover {{
-  background-color: #f1f1f1;
-}}
-.level-easy {{
-  background: #d4edda;
-  color: #155724;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-}}
-.level-medium {{
-  background: #fff3cd;
-  color: #856404;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-}}
-.level-hard {{
-  background: #f8d7da;
-  color: #721c24;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-}}
-</style>
-</head>
-<body>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>DSA Dashboard</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                background: #f8f9fa;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+            }}
+            th, td {{
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+                vertical-align: top;
+            }}
+            th {{
+                background: #343a40;
+                color: white;
+            }}
+            tr:nth-child(even) {{ background: #f2f2f2; }}
+            tr:hover {{ background-color: #e8f0fe; }}
+            select {{
+                padding: 5px;
+                margin-right: 10px;
+            }}
+            .editable {{
+                background-color: #fff9c4;
+                cursor: text;
+            }}
+            #saveChanges {{
+                padding: 10px 20px;
+                font-size: 16px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+            }}
+            #saveChanges:hover {{
+                background-color: #0056b3;
+            }}
+        </style>
+    </head>
+    <body>
+        <h2>📘 DSA Dashboard</h2>
+        <div>
+            <label>Filter by Level:</label>
+            <select id="levelFilter">
+                <option value="all">All</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
 
-<h1>📘 DSA Problem Dashboard</h1>
+            <label>Filter by Revisit:</label>
+            <select id="revisitFilter">
+                <option value="all">All</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
 
-<div style="text-align:center;">
-  <label>Filter by Type:</label>
-  <select id="typeFilter">
-    <option value="">All</option>
-    {type_options_html}
-  </select>
+            <label>Filter by Type:</label>
+            <select id="typeFilter">
+                <option value="all">All</option>
+                {type_options_html}
+            </select>
+        </div>
 
-  <label>Filter by Level:</label>
-  <select id="levelFilter">
-    <option value="">All</option>
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-  </select>
+        <table id="problemsTable">
+            <thead>
+                <tr>
+                    <th style="width:5%;">#</th>
+                    <th style="width:10%;">Type</th>
+                    <th style="width:25%;">Problem</th>
+                    <th style="width:15%;">Level</th>
+                    <th style="width:15%;">Pattern</th>
+                    <th style="width:10%;">Revisit</th>
+                    <th style="width:20%;">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {''.join(rows_html)}
+            </tbody>
+        </table>
 
-  <label>Filter by Revisit:</label>
-  <select id="revisitFilter">
-    <option value="">All</option>
-    <option value="yes">Yes</option>
-    <option value="no">No</option>
-  </select>
-</div>
+        <div style="text-align:center; margin-top:20px;">
+            <button id="saveChanges">💾 Save Changes</button>
+        </div>
 
-<table id="problemsTable" class="datatable">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Problem</th>
-      <th>Solution</th>
-      <th>Level</th>
-      <th>Pattern</th>
-      <th>Revisit</th>
-      <th>Quick Notes</th>
-    </tr>
-  </thead>
-  <tbody>
-    {''.join(rows_html)}
-  </tbody>
-</table>
+        <script>
+        const levelFilter = document.getElementById("levelFilter");
+        const revisitFilter = document.getElementById("revisitFilter");
+        const typeFilter = document.getElementById("typeFilter");
 
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {{
-  const typeFilter = document.getElementById("typeFilter");
-  const levelFilter = document.getElementById("levelFilter");
-  const revisitFilter = document.getElementById("revisitFilter");
-  const table = document.querySelector("#problemsTable");
-  const dataTable = new simpleDatatables.DataTable(table);
+        function applyFilters() {{
+            const levelVal = levelFilter.value;
+            const revisitVal = revisitFilter.value;
+            const typeVal = typeFilter.value;
 
-  function applyFilters() {{
-    const typeVal = (typeFilter.value || "").toLowerCase();
-    const levelVal = (levelFilter.value || "").toLowerCase();
-    const revisitVal = (revisitFilter.value || "").toLowerCase();
+            document.querySelectorAll("#problemsTable tbody tr").forEach(row => {{
+                const matchesLevel = (levelVal === "all" || row.dataset.level === levelVal);
+                const matchesRevisit = (revisitVal === "all" || row.dataset.revisit === revisitVal);
+                const matchesType = (typeVal === "all" || row.dataset.type === typeVal);
+                row.style.display = (matchesLevel && matchesRevisit && matchesType) ? "" : "none";
+            }});
+        }}
 
-    // Loop through all table rows
-    table.querySelectorAll("tbody tr").forEach(row => {{
-      const rowType = row.getAttribute("data-type") || "";
-      const rowLevel = row.getAttribute("data-level") || "";
-      const rowRevisit = row.getAttribute("data-revisit") || "";
+        [levelFilter, revisitFilter, typeFilter].forEach(f => f.addEventListener("change", applyFilters));
 
-      const matchType = !typeVal || rowType === typeVal;
-      const matchLevel = !levelVal || rowLevel === levelVal;
-      const matchRevisit = !revisitVal || rowRevisit === revisitVal;
+        document.getElementById("saveChanges").addEventListener("click", () => {{
+            const updates = [];
+            document.querySelectorAll("#problemsTable tbody tr").forEach(row => {{
+                const link = row.querySelector("td:nth-child(3) a");
+                if (!link) return;
+                const path = link.getAttribute("href");
+                const level = row.querySelector(".level").textContent.trim();
+                const revisit = row.querySelector(".revisit").textContent.trim();
+                const notes = row.querySelector(".notes").textContent.trim();
 
-      row.style.display = (matchType && matchLevel && matchRevisit) ? "" : "none";
-    }});
-  }}
+                updates.push({{ path, level, revisit, notes }});
+            }});
 
-  [typeFilter, levelFilter, revisitFilter].forEach(f => f.addEventListener("change", applyFilters));
-}});
-</script>
+            const blob = new Blob([JSON.stringify(updates, null, 2)], {{ type: "application/json" }});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "updates.json";
+            a.click();
+        }});
+        </script>
+    </body>
+    </html>
+    """
 
-</body>
-</html>
-"""
-    with open(HTML_PATH, "w", encoding="utf-8") as f:
+    with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
-    print("✅ index.html generated — type, level, and revisit filters all working!")
-
-# -----------------------------
-# 4️⃣ Update README
-# -----------------------------
-def update_readme():
-    """Generate README.md with a dashboard link"""
-    table = generate_table()
-    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
-    content = f"""# 🚀 DSA in Java
-
-📊 **[View Interactive Dashboard →]({dashboard_url})**
-_Filter by Level, Pattern, and Revisit status interactively!_
-
----
-
-Automatically generated table of solved problems.
-
-{table}
-"""
-    with open(README_PATH, "w", encoding="utf-8") as f:
-        f.write(content)
-    print("✅ README.md updated successfully!")
+    print("✅ HTML dashboard generated successfully: index.html")
 
 
-# -----------------------------
-# 5️⃣ Main
-# -----------------------------
+def apply_updates():
+    """Apply updates from updates.json to Java files (comment headers)."""
+    if not os.path.exists("updates.json"):
+        print("No updates.json found — skipping.")
+        return
+
+    with open("updates.json", "r", encoding="utf-8") as f:
+        updates = json.load(f)
+
+    for update in updates:
+        file_path = update["path"]
+        level = update["level"]
+        revisit = update["revisit"]
+        notes = update["notes"]
+
+        if not os.path.exists(file_path):
+            print(f"⚠️ Skipping missing file: {file_path}")
+            continue
+
+        lines = []
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("// Level:"):
+                    line = f"// Level: {level}\n"
+                elif line.startswith("// Revisit:"):
+                    line = f"// Revisit: {revisit}\n"
+                elif line.startswith("// Notes:"):
+                    line = f"// Notes: {notes}\n"
+                lines.append(line)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+
+        print(f"✅ Updated: {file_path}")
+
+    os.remove("updates.json")
+    print("🧹 Removed updates.json after applying changes.")
+
+
 if __name__ == "__main__":
-    update_readme()
+    apply_updates()
     generate_html()
