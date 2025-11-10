@@ -330,19 +330,23 @@ def apply_updates():
 # 5️⃣ Update README
 # -----------------------------
 def update_readme():
+     """Generate README.md with a working dashboard link to GitHub Pages"""
     table = generate_table()
+    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
     content = f"""# 🚀 DSA in Java
 
-📊 **[View Interactive Dashboard →](index.html)**  
+📊 **[View Interactive Dashboard →]({dashboard_url})**  
 _Filter by Level, Type, and Revisit interactively!_
 
 ---
+
+Automatically generated table of solved problems.
 
 {table}
 """
     with open(README_PATH, "w", encoding="utf-8") as f:
         f.write(content)
-    print("✅ README.md updated successfully!")
+    print("✅ README.md updated successfully with correct GitHub Pages link!")
 
 
 # -----------------------------
