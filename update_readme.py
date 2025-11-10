@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 """
 dashboard.py - Fixed version with JS safely inside Python strings
 """
