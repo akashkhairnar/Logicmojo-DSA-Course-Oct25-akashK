@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-dashboard.py - Fixed version with proper JS embedding
+dashboard.py - Fixed & Full Version
 """
 
 import os
@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = "dsa"
 README_PATH = "README.md"
 HTML_PATH = "index.html"
-BRANCH = "master"  # git branch to push
+BRANCH = "master"
 
 ADMIN_TOKEN_ENV = os.getenv("ADMIN_TOKEN")
 GITHUB_TOKEN_ENV = os.getenv("GITHUB_TOKEN")
@@ -21,10 +21,7 @@ app = Flask(__name__)
 
 # ---------------- Helper functions ----------------
 def extract_metadata(file_path):
-    problem = ""
-    level = ""
-    revisit = ""
-    notes = ""
+    problem = level = revisit = notes = ""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             for _ in range(50):
@@ -32,23 +29,17 @@ def extract_metadata(file_path):
                 if not line:
                     break
                 s = line.strip()
-                if s.startswith("// Problem:"):
-                    problem = s.replace("// Problem:", "").strip()
-                elif s.startswith("// Level:"):
-                    level = s.replace("// Level:", "").strip()
-                elif s.startswith("// Revisit:"):
-                    revisit = s.replace("// Revisit:", "").strip()
-                elif s.startswith("// Notes:"):
-                    notes = s.replace("// Notes:", "").strip()
-                if problem and level and revisit and notes:
-                    break
+                if s.startswith("// Problem:"): problem = s.replace("// Problem:","").strip()
+                elif s.startswith("// Level:"): level = s.replace("// Level:","").strip()
+                elif s.startswith("// Revisit:"): revisit = s.replace("// Revisit:","").strip()
+                elif s.startswith("// Notes:"): notes = s.replace("// Notes:","").strip()
+                if problem and level and revisit and notes: break
     except:
         pass
     return problem, level, revisit, notes
 
 def ensure_type(s):
-    if not s:
-        return "general"
+    if not s: return "general"
     return s.strip().lower().strip("./\\")
 
 def generate_table_md():
@@ -57,17 +48,14 @@ def generate_table_md():
     for root, _, files in os.walk(ROOT):
         for file in sorted(files):
             if file.endswith(".java"):
-                path = os.path.join(root, file)
+                path = os.path.join(root,file)
                 problem, level, revisit, notes = extract_metadata(path)
-                problem_display = problem or file.replace(".java", "")
+                problem_display = problem or file.replace(".java","")
                 rel_path = os.path.relpath(path)
                 github_link = f"[Code]({rel_path})"
                 rows.append((count, problem_display, github_link, level, file.replace(".java",""), revisit, notes))
-                count +=1
-
-    if not rows:
-        return "No Java files found yet."
-
+                count+=1
+    if not rows: return "No Java files found yet."
     header = (
         "# 🚀 DSA in Java\n\n"
         "📊 **[Open Interactive Dashboard →](index.html)**  \n"
@@ -86,11 +74,9 @@ def apply_updates(updates):
         level = upd.get("level","").strip()
         revisit = upd.get("revisit","").strip()
         notes = upd.get("notes","").strip()
-        if not path:
-            continue
+        if not path: continue
         file_path = Path(path)
-        if not file_path.exists():
-            continue
+        if not file_path.exists(): continue
         try:
             with open(file_path,"r",encoding="utf-8") as f:
                 lines = f.readlines()
@@ -98,21 +84,14 @@ def apply_updates(updates):
             insert_index_after_problem = None
             for idx,line in enumerate(lines[:50]):
                 s=line.strip()
-                if s.startswith("// Problem:"):
-                    insert_index_after_problem=idx
-                if s.startswith("// Level:") and level:
-                    lines[idx]=f"// Level: {level}\n"; replaced_level=True
-                if s.startswith("// Revisit:") and revisit:
-                    lines[idx]=f"// Revisit: {revisit}\n"; replaced_revisit=True
-                if s.startswith("// Notes:") and notes:
-                    lines[idx]=f"// Notes: {notes}\n"; replaced_notes=True
+                if s.startswith("// Problem:"): insert_index_after_problem=idx
+                if s.startswith("// Level:") and level: lines[idx]=f"// Level: {level}\n"; replaced_level=True
+                if s.startswith("// Revisit:") and revisit: lines[idx]=f"// Revisit: {revisit}\n"; replaced_revisit=True
+                if s.startswith("// Notes:") and notes: lines[idx]=f"// Notes: {notes}\n"; replaced_notes=True
             insertion=[]
-            if not replaced_level and level:
-                insertion.append(f"// Level: {level}\n")
-            if not replaced_revisit and revisit:
-                insertion.append(f"// Revisit: {revisit}\n")
-            if not replaced_notes and notes:
-                insertion.append(f"// Notes: {notes}\n")
+            if not replaced_level and level: insertion.append(f"// Level: {level}\n")
+            if not replaced_revisit and revisit: insertion.append(f"// Revisit: {revisit}\n")
+            if not replaced_notes and notes: insertion.append(f"// Notes: {notes}\n")
             if insertion:
                 if insert_index_after_problem is not None:
                     lines[insert_index_after_problem+1:insert_index_after_problem+1]=insertion
@@ -124,21 +103,16 @@ def apply_updates(updates):
             print(f"Failed to update {file_path}: {e}")
 
 def git_commit_push(message="auto: dashboard update"):
-    if not GITHUB_TOKEN_ENV:
-        print("No GITHUB_TOKEN set, skipping git push")
-        return
+    if not GITHUB_TOKEN_ENV: return
     try:
         subprocess.run(["git","add","."],check=True)
         subprocess.run(["git","commit","-m",message],check=True)
         repo_url=subprocess.check_output(["git","config","--get","remote.origin.url"],encoding="utf-8").strip()
-        # convert https url to token url
         if repo_url.startswith("https://"):
             parts=repo_url.split("https://")
             token_url=f"https://{GITHUB_TOKEN_ENV}@{parts[1]}"
-        else:
-            token_url=repo_url
+        else: token_url=repo_url
         subprocess.run(["git","push",token_url,BRANCH],check=True)
-        print("✅ Changes pushed to GitHub")
     except subprocess.CalledProcessError as e:
         print(f"Git push failed: {e}")
 
@@ -151,18 +125,25 @@ def index():
 def save():
     data=request.get_json()
     token=data.get("admin_token","")
-    if token != ADMIN_TOKEN_ENV:
-        return jsonify({"status":"error","msg":"Invalid admin token"}),403
+    if token != ADMIN_TOKEN_ENV: return jsonify({"status":"error","msg":"Invalid admin token"}),403
     updates=data.get("updates",[])
     apply_updates(updates)
-    try:
-        with open(README_PATH,"w",encoding="utf-8") as f:
-            f.write(generate_table_md())
-    except Exception as e:
-        print("Failed to write README.md",e)
+    with open(README_PATH,"w",encoding="utf-8") as f:
+        f.write(generate_table_md())
     render_dashboard_html(write=True)
     git_commit_push()
     return jsonify({"status":"success","msg":"Updates applied successfully"})
+
+@app.route("/update_admin",methods=["POST"])
+def update_admin():
+    data=request.get_json()
+    token=data.get("admin_token","")
+    new_token=data.get("new_token","").strip()
+    global ADMIN_TOKEN_ENV
+    if token != ADMIN_TOKEN_ENV: return jsonify({"status":"error","msg":"Invalid admin token"}),403
+    if not new_token: return jsonify({"status":"error","msg":"New token required"}),400
+    ADMIN_TOKEN_ENV = new_token
+    return jsonify({"status":"success","msg":"Admin token updated successfully"})
 
 # ---------------- Dashboard HTML ----------------
 def render_dashboard_html(write=False):
@@ -221,6 +202,7 @@ Level: <select id="levelFilter"><option value="">All</option><option value="easy
 Revisit: <select id="revisitFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
 <button id="editToggle">Edit Mode</button>
 <button id="saveBtn" style="display:none;">💾 Save</button>
+<button id="changeTokenBtn">🔑 Change Admin Token</button>
 </div>
 <table id="problemsTable"><thead><tr>
 <th>#</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Notes</th>
@@ -232,19 +214,19 @@ let editMode=false;
 const table=document.getElementById('problemsTable').querySelector('tbody');
 const editToggle=document.getElementById('editToggle');
 const saveBtn=document.getElementById('saveBtn');
+const changeTokenBtn=document.getElementById('changeTokenBtn');
 
 function applyFilters(){{
     let typeVal=document.getElementById('typeFilter').value.toLowerCase();
     let levelVal=document.getElementById('levelFilter').value.toLowerCase();
     let revisitVal=document.getElementById('revisitFilter').value.toLowerCase();
-    table.querySelectorAll('tr').forEach(row=>{
-        let rowType=row.getAttribute('data-type') || '';
-        let rowLevel=row.getAttribute('data-level') || '';
-        let rowRevisit=row.getAttribute('data-revisit') || '';
+    table.querySelectorAll('tr').forEach(row=>{{
+        let rowType=row.getAttribute('data-type')||'';
+        let rowLevel=row.getAttribute('data-level')||'';
+        let rowRevisit=row.getAttribute('data-revisit')||'';
         row.style.display=( (!typeVal||rowType===typeVal)&&(!levelVal||rowLevel===levelVal)&&(!revisitVal||rowRevisit===revisitVal) )?'':'none';
-    });
+    }});
 }}
-
 ['typeFilter','levelFilter','revisitFilter'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
 
 editToggle.addEventListener('click',()=>{
@@ -258,13 +240,28 @@ saveBtn.addEventListener('click',async()=>{
     if(!token)return alert("Admin token required");
     let updates=[];
     table.querySelectorAll('tr').forEach(row=>{
-        updates.push({path:row.dataset.path,level:row.querySelector('td:nth-child(4)').textContent.trim(),revisit:row.querySelector('td:nth-child(6)').textContent.trim(),notes:row.querySelector('td:nth-child(7)').textContent.trim()});
+        updates.push({{
+            path:row.dataset.path,
+            level:row.querySelector('td:nth-child(4)').textContent.trim(),
+            revisit:row.querySelector('td:nth-child(6)').textContent.trim(),
+            notes:row.querySelector('td:nth-child(7)').textContent.trim()
+        }});
     });
-    let res=await fetch('/save',{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({admin_token:token,updates:updates})});
+    let res=await fetch('/save',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{admin_token:token,updates:updates}})}});
     let result=await res.json();
     alert(result.msg);
     if(result.status==="success") location.reload();
 });
+
+changeTokenBtn.addEventListener('click',async()=>{
+    let current=prompt("Enter current Admin Token");
+    if(!current)return alert("Token required");
+    let newToken=prompt("Enter new Admin Token");
+    if(!newToken)return alert("New token required");
+    let res=await fetch('/update_admin',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{admin_token:current,new_token:newToken}})}});
+    let result=await res.json();
+    alert(result.msg);
+}});
 </script>
 </body>
 </html>
