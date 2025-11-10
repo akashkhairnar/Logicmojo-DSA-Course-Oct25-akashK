@@ -1,22 +1,11 @@
 #!/usr/bin/env python3
 """
-dashboard.py
-
-DSA Dashboard with:
-- Local Flask server
-- Admin token protection
-- Inline edit for Level, Revisit, Notes
-- Auto update .java files
-- Auto regenerate README.md and index.html
-- Optional GitHub commit & push using GITHUB_TOKEN
-- Filters: Type, Level, Revisit
+dashboard.py - Fixed version with proper JS embedding
 """
 
 import os
-import json
 import subprocess
-from datetime import datetime
-from flask import Flask, request, send_from_directory, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string
 from pathlib import Path
 
 # ---------------- Configuration ----------------
@@ -28,7 +17,6 @@ BRANCH = "master"  # git branch to push
 ADMIN_TOKEN_ENV = os.getenv("ADMIN_TOKEN")
 GITHUB_TOKEN_ENV = os.getenv("GITHUB_TOKEN")
 
-# ---------------- Flask App ----------------
 app = Flask(__name__)
 
 # ---------------- Helper functions ----------------
@@ -157,7 +145,6 @@ def git_commit_push(message="auto: dashboard update"):
 # ---------------- Flask routes ----------------
 @app.route("/")
 def index():
-    # Serve dashboard HTML
     return render_dashboard_html()
 
 @app.route("/save",methods=["POST"])
@@ -168,21 +155,17 @@ def save():
         return jsonify({"status":"error","msg":"Invalid admin token"}),403
     updates=data.get("updates",[])
     apply_updates(updates)
-    # regenerate README
     try:
         with open(README_PATH,"w",encoding="utf-8") as f:
             f.write(generate_table_md())
     except Exception as e:
         print("Failed to write README.md",e)
-    # regenerate HTML
     render_dashboard_html(write=True)
-    # git push
     git_commit_push()
     return jsonify({"status":"success","msg":"Updates applied successfully"})
 
 # ---------------- Dashboard HTML ----------------
 def render_dashboard_html(write=False):
-    # Generate table rows
     rows_html=[]
     type_set=set()
     count=1
@@ -214,10 +197,11 @@ def render_dashboard_html(write=False):
                 )
                 count+=1
     type_options_html="\n".join([f"<option value='{t}'>{t.title()}</option>" for t in sorted(type_set)])
-
-    html_template=f"""<!doctype html>
+    html_template=f"""<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DSA Dashboard</title>
 <style>
 body{{font-family:sans-serif;background:#f5f6f8;margin:20px;}}
@@ -250,39 +234,40 @@ const editToggle=document.getElementById('editToggle');
 const saveBtn=document.getElementById('saveBtn');
 
 function applyFilters(){{
-let typeVal=document.getElementById('typeFilter').value.toLowerCase();
-let levelVal=document.getElementById('levelFilter').value.toLowerCase();
-let revisitVal=document.getElementById('revisitFilter').value.toLowerCase();
-table.querySelectorAll('tr').forEach(row=>{
-let rowType=row.getAttribute('data-type')||'';
-let rowLevel=row.getAttribute('data-level')||'';
-let rowRevisit=row.getAttribute('data-revisit')||'';
-row.style.display=( (!typeVal||rowType===typeVal)&&(!levelVal||rowLevel===levelVal)&&(!revisitVal||rowRevisit===revisitVal) )?'':'none';
-}});
+    let typeVal=document.getElementById('typeFilter').value.toLowerCase();
+    let levelVal=document.getElementById('levelFilter').value.toLowerCase();
+    let revisitVal=document.getElementById('revisitFilter').value.toLowerCase();
+    table.querySelectorAll('tr').forEach(row=>{
+        let rowType=row.getAttribute('data-type') || '';
+        let rowLevel=row.getAttribute('data-level') || '';
+        let rowRevisit=row.getAttribute('data-revisit') || '';
+        row.style.display=( (!typeVal||rowType===typeVal)&&(!levelVal||rowLevel===levelVal)&&(!revisitVal||rowRevisit===revisitVal) )?'':'none';
+    });
 }}
 
 ['typeFilter','levelFilter','revisitFilter'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
 
 editToggle.addEventListener('click',()=>{
-editMode=!editMode;
-document.querySelectorAll('.editable-cell').forEach(cell=>cell.contentEditable=editMode?"true":"false");
-saveBtn.style.display=editMode?'':'none';
+    editMode=!editMode;
+    document.querySelectorAll('.editable-cell').forEach(cell=>cell.contentEditable=editMode?"true":"false");
+    saveBtn.style.display=editMode?'':'none';
 });
 
 saveBtn.addEventListener('click',async()=>{
-let token=prompt("Enter Admin Token");
-if(!token)return alert("Admin token required");
-let updates=[];
-table.querySelectorAll('tr').forEach(row=>{
-updates.push({path:row.dataset.path,level:row.querySelector('td:nth-child(4)').textContent.trim(),revisit:row.querySelector('td:nth-child(6)').textContent.trim(),notes:row.querySelector('td:nth-child(7)').textContent.trim()});
-});
-let res=await fetch('/save',{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({admin_token:token,updates:updates})});
-let result=await res.json();
-alert(result.msg);
-if(result.status==="success") location.reload();
+    let token=prompt("Enter Admin Token");
+    if(!token)return alert("Admin token required");
+    let updates=[];
+    table.querySelectorAll('tr').forEach(row=>{
+        updates.push({path:row.dataset.path,level:row.querySelector('td:nth-child(4)').textContent.trim(),revisit:row.querySelector('td:nth-child(6)').textContent.trim(),notes:row.querySelector('td:nth-child(7)').textContent.trim()});
+    });
+    let res=await fetch('/save',{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({admin_token:token,updates:updates})});
+    let result=await res.json();
+    alert(result.msg);
+    if(result.status==="success") location.reload();
 });
 </script>
-</body></html>
+</body>
+</html>
 """
     if write:
         with open(HTML_PATH,"w",encoding="utf-8") as f:
@@ -291,10 +276,8 @@ if(result.status==="success") location.reload();
 
 # ---------------- Main ----------------
 if __name__=="__main__":
-    # ensure README exists
     with open(README_PATH,"w",encoding="utf-8") as f:
         f.write(generate_table_md())
-    # generate dashboard HTML
     render_dashboard_html(write=True)
     print("✅ Dashboard ready at http://localhost:5000")
-    app.run(host="0.0.0.0",port=5000,debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
