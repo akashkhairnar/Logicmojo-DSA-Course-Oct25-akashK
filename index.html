@@ -3,186 +3,83 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DSA Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
 <style>
-:root {
-  --bg-color: #f5f6fa;
-  --card-bg: #ffffff;
-  --border-color: #e0e0e0;
-  --text-color: #333;
-  --accent: #6c63ff;
-}
 body {
-  font-family: "Inter", Arial, sans-serif;
+  font-family: Arial, sans-serif;
   margin: 40px;
-  background: var(--bg-color);
-  color: var(--text-color);
+  background: #f8f9fa;
 }
 h1 {
   text-align: center;
-  font-size: 28px;
-  margin-bottom: 25px;
-}
-.container {
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  padding: 25px;
-}
-.filters {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-select {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  background: white;
-}
-button {
-  padding: 8px 16px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-button:hover {
-  background: #554ef0;
+  color: #333;
 }
 table {
   width: 100%;
   border-collapse: collapse;
   background: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: 6px;
 }
 th {
-  background: var(--accent);
+  background: #007bff;
   color: white;
-  text-align: left;
   padding: 10px;
 }
 td {
-  border-bottom: 1px solid var(--border-color);
-  padding: 10px;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
 }
 tr:hover {
-  background: #f2f2ff;
+  background-color: #f1f1f1;
 }
-.hidden {
-  display: none;
+.level-easy {
+  background: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
-.editable {
-  background: #fdf8d3;
+.level-medium {
+  background: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.level-hard {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 </style>
 </head>
 <body>
 
 <h1>📘 DSA Problem Dashboard</h1>
-<div class="container">
-  <div class="filters">
-    <label>Level:</label>
-    <select id="levelFilter">
-      <option value="">All</option>
-      <option value="easy">Easy</option>
-      <option value="medium">Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-    <label>Revisit:</label>
-    <select id="revisitFilter">
-      <option value="">All</option>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-    <label>Type:</label>
-    <select id="typeFilter">
-      <option value="">All</option>
-      <option value='array'>Array</option>
-    </select>
-    <button id="editBtn">✏️ Edit Mode</button>
-    <button id="saveBtn" class="hidden">💾 Save</button>
-    <button id="cancelBtn" class="hidden">❌ Cancel</button>
-  </div>
 
-  <table id="problemsTable">
-    <thead>
-      <tr>
-        <th style="width:5%;">#</th>
-        <th style="width:15%;">Problem</th>
-        <th style="width:10%;">Solution</th>
-        <th style="width:15%;">Level</th>
-        <th style="width:20%;">Pattern</th>
-        <th style="width:10%;">Revisit</th>
-        <th style="width:25%;">Notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr data-level='easy' data-revisit='yes' data-type='array'><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td>Easy</td><td>Two Pointer</td><td>Yes</td><td>Count zeros and if count>0 then swap number by that much index</td></tr><tr data-level='easy' data-revisit='no' data-type='array'><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td>Easy</td><td>HashMap (Complement Pattern)</td><td>No</td><td>Use map to store num[i],index.</td></tr>
-    </tbody>
-  </table>
-</div>
+<table id="problemsTable" class="datatable">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Problem</th>
+      <th>Solution</th>
+      <th>Level</th>
+      <th>Time Complexity</th>
+      <th>Revisit</th>
+      <th>Quick Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>-</td><td>Yes</td><td>Count zeros and if count>0 then swap number by that much index</td></tr><tr><td>2</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>-</td><td>No</td><td>Use map to store num[i],index.</td></tr>
+  </tbody>
+</table>
 
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
 <script>
-const levelFilter = document.getElementById("levelFilter");
-const revisitFilter = document.getElementById("revisitFilter");
-const typeFilter = document.getElementById("typeFilter");
-
-function applyFilters() {
-  const levelVal = levelFilter.value;
-  const revisitVal = revisitFilter.value;
-  const typeVal = typeFilter.value;
-  document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
-    const matchesLevel = !levelVal || row.dataset.level === levelVal;
-    const matchesRevisit = !revisitVal || row.dataset.revisit === revisitVal;
-    const matchesType = !typeVal || row.dataset.type === typeVal;
-    row.style.display = (matchesLevel && matchesRevisit && matchesType) ? "" : "none";
-  });
-}
-
-[levelFilter, revisitFilter, typeFilter].forEach(f => f.addEventListener("change", applyFilters));
-
-const editBtn = document.getElementById("editBtn");
-const saveBtn = document.getElementById("saveBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-
-editBtn.addEventListener("click", () => {
-  document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
-    row.querySelectorAll("td:nth-child(4), td:nth-child(6), td:nth-child(7)").forEach(td => {
-      td.contentEditable = "true";
-      td.classList.add("editable");
-    });
-  });
-  editBtn.classList.add("hidden");
-  saveBtn.classList.remove("hidden");
-  cancelBtn.classList.remove("hidden");
-});
-
-cancelBtn.addEventListener("click", () => {
-  window.location.reload();
-});
-
-saveBtn.addEventListener("click", () => {
-  const updates = [];
-  document.querySelectorAll("#problemsTable tbody tr").forEach(row => {
-    const codeLink = row.querySelector("td:nth-child(3) a");
-    if (!codeLink) return;
-    const path = codeLink.getAttribute("href");
-    const level = row.querySelector("td:nth-child(4)").textContent.trim();
-    const revisit = row.querySelector("td:nth-child(6)").textContent.trim();
-    const notes = row.querySelector("td:nth-child(7)").textContent.trim();
-    updates.push({ path, level, revisit, notes });
-  });
-  const blob = new Blob([JSON.stringify(updates, null, 2)], {type: "application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "updates.json";
-  a.click();
+document.addEventListener("DOMContentLoaded", function() {
+  const table = document.querySelector("#problemsTable");
+  new simpleDatatables.DataTable(table);
 });
 </script>
 

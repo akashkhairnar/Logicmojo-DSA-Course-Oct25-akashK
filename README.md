@@ -1,10 +1,12 @@
-# DSA Problems Solutions
+# 🚀 DSA in Java
 
-## Progress
-**Solved:** 0/145 problems  
-**Last Updated:** Nov 13, 2025
+📊 **[View Interactive Dashboard →](https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/)**
 
-## Solutions
+---
 
-| # | Problem | Difficulty | LeetCode | Solution | Date Solved | Notes |
-|---|---------|-----------|----------|----------|-------------|-------|
+Automatically generated list of solved problems.
+
+| # | Problem | Solution | Level | Time Complexity | Revisit | Quick Notes |
+|---|----------|-----------|--------|-----------------|----------|--------------|
+| 1 | [Move Zeroes](https://leetcode.com/problems/move-zeroes/description.) | [Code](dsa/Array/MoveZeros.java) | Easy | - | Yes | Count zeros and if count>0 then swap number by that much index |
+| 2 | [Two Sum](https://leetcode.com/problems/two-sum/description/.) | [Code](dsa/Array/TwoSum.java) | Easy | - | No | Use map to store num[i],index. |
