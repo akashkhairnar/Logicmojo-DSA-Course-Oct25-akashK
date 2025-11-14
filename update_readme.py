@@ -1,284 +1,256 @@
-#!/usr/bin/env python3
-"""
-DSA Dashboard with direct GitHub save
-"""
-
 import os
-import subprocess
-from pathlib import Path
-from flask import Flask, request, jsonify, render_template_string
 
-# ----------------- CONFIG -----------------
-ROOT = "dsa"
+ROOT = "dsa"  # folder where all your .java files are
 README_PATH = "README.md"
 HTML_PATH = "index.html"
-BRANCH = "master"
 
-# Environment variables for security
-ADMIN_TOKEN_ENV = os.getenv("ADMIN_TOKEN", "admin123")  # default token, override with env
-GITHUB_TOKEN_ENV = os.getenv("GH_TOKEN")  # store your GitHub token as secret
-
-app = Flask(__name__)
-
-# ----------------- HELPERS -----------------
 def extract_metadata(file_path):
-    problem = level = revisit = notes = ""
+    """Extract metadata (Problem, Link, Notes, Level, Time, Revisit) from Java file comments"""
+    problem = "-"
+    link = ""
+    notes = "-"
+    level = "-"
+    time_complexity = "-"
+    revisit = "-"
+
     try:
-        with open(file_path,"r",encoding="utf-8") as f:
-            for _ in range(50):
-                line = f.readline()
-                if not line: break
-                s = line.strip()
-                if s.startswith("// Problem:"): problem=s.replace("// Problem:","").strip()
-                elif s.startswith("// Level:"): level=s.replace("// Level:","").strip()
-                elif s.startswith("// Revisit:"): revisit=s.replace("// Revisit:","").strip()
-                elif s.startswith("// Notes:"): notes=s.replace("// Notes:","").strip()
-                if problem and level and revisit and notes: break
-    except: pass
-    return problem, level, revisit, notes
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("// Problem:"):
+                    problem = line.replace("// Problem:", "").strip()
+                elif line.startswith("// Link:"):
+                    link = line.replace("// Link:", "").strip()
+                elif line.startswith("// Notes:"):
+                    notes = line.replace("// Notes:", "").strip()
+                elif line.startswith("// Level:"):
+                    level = line.replace("// Level:", "").strip()
+                elif line.startswith("// TimeComplexity:"):
+                    time_complexity = line.replace("// TimeComplexity:", "").strip()
+                elif line.startswith("// Revisit:"):
+                    revisit = line.replace("// Revisit:", "").strip()
+    except Exception as e:
+        print(f"⚠️ Error reading {file_path}: {e}")
 
-def ensure_type(s):
-    if not s: return "general"
-    return s.strip().lower().strip("./\\")
+    return problem, link, notes, level, time_complexity, revisit
 
-def generate_table_md():
+
+def generate_table():
+    """Generate Markdown table for README.md"""
     rows = []
     count = 1
-    for root,_,files in os.walk(ROOT):
+    for root, _, files in os.walk(ROOT):
         for file in sorted(files):
-            if file.endswith(".java"):
-                path = os.path.join(root,file)
-                problem,level,revisit,notes = extract_metadata(path)
-                problem_display = problem or file.replace(".java","")
-                rel_path = os.path.relpath(path)
-                github_link = f"[Code]({rel_path})"
-                rows.append((count, problem_display, github_link, level, file.replace(".java",""), revisit, notes))
-                count+=1
-    if not rows: return "No Java files found yet."
-    header = (
-        "# 🚀 DSA in Java\n\n"
-        "📊 **[Open Interactive Dashboard →](index.html)**  \n"
-        "_Filter by Type, Level, and Revisit status interactively._\n\n"
-        "| # | Problem | Solution | Level | Pattern | Revisit | Notes |\n"
-        "|---:|:--------|:--------:|:-----:|:--------|:-------:|:------|\n"
-    )
-    lines = [header]
-    for r in rows:
-        lines.append(f"| {r[0]} | {r[1]} | {r[2]} | {r[3]} | {r[4]} | {r[5]} | {r[6]} |")
-    return "\n".join(lines)
+            if file.endswith(".java") and ".git" not in root and ".github" not in root:
+                path = os.path.join(root, file)
+                github_link = f"[Code]({path})"
+                problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                problem_display = f"[{problem}]({link})" if link else problem
+                rows.append(f"| {count} | {problem_display} | {github_link} | {level} | {time_complexity} | {revisit} | {notes} |")
+                count += 1
 
-def apply_updates(updates):
-    for upd in updates:
-        path = upd.get("path")
-        level = upd.get("level","").strip()
-        revisit = upd.get("revisit","").strip()
-        notes = upd.get("notes","").strip()
-        if not path: continue
-        file_path = Path(path)
-        if not file_path.exists(): continue
-        try:
-            with open(file_path,"r",encoding="utf-8") as f:
-                lines = f.readlines()
-            replaced_level = replaced_revisit = replaced_notes = False
-            insert_index_after_problem = None
-            for idx,line in enumerate(lines[:50]):
-                s=line.strip()
-                if s.startswith("// Problem:"): insert_index_after_problem=idx
-                if s.startswith("// Level:") and level: lines[idx]=f"// Level: {level}\n"; replaced_level=True
-                if s.startswith("// Revisit:") and revisit: lines[idx]=f"// Revisit: {revisit}\n"; replaced_revisit=True
-                if s.startswith("// Notes:") and notes: lines[idx]=f"// Notes: {notes}\n"; replaced_notes=True
-            insertion=[]
-            if not replaced_level and level: insertion.append(f"// Level: {level}\n")
-            if not replaced_revisit and revisit: insertion.append(f"// Revisit: {revisit}\n")
-            if not replaced_notes and notes: insertion.append(f"// Notes: {notes}\n")
-            if insertion:
-                if insert_index_after_problem is not None:
-                    lines[insert_index_after_problem+1:insert_index_after_problem+1]=insertion
-                else:
-                    lines=insertion+["\n"]+lines
-            with open(file_path,"w",encoding="utf-8") as f:
-                f.writelines(lines)
-        except Exception as e:
-            print(f"Failed to update {file_path}: {e}")
+    if not rows:
+        return "No Java files found yet."
 
-def git_commit_push(message="Update from dashboard"):
-    if not GITHUB_TOKEN_ENV: return
-    try:
-        subprocess.run(["git","add",".","-A"], check=True)
-        subprocess.run(["git","commit","-m", message], check=True)
-        repo_url = subprocess.check_output(["git","config","--get","remote.origin.url"], encoding="utf-8").strip()
-        if repo_url.startswith("https://"):
-            token_url = f"https://{GITHUB_TOKEN_ENV}@{repo_url[8:]}"
-        else:
-            token_url = repo_url
-        subprocess.run(["git","push", token_url, BRANCH], check=True)
-    except subprocess.CalledProcessError as e:
-        print("Git push failed:", e)
+    header = "| # | Problem | Solution | Level | Time Complexity | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|"
+    return header + "\n" + "\n".join(rows)
 
-# ----------------- FLASK ROUTES -----------------
-@app.route("/")
-def index():
-    return render_dashboard_html()
 
-@app.route("/save", methods=["POST"])
-def save():
-    data = request.get_json()
-    token = data.get("admin_token","")
-    if token != ADMIN_TOKEN_ENV:
-        return jsonify({"status":"error","msg":"Invalid admin token"}),403
-    updates = data.get("updates", [])
-    apply_updates(updates)
-    # Update README
-    with open(README_PATH,"w",encoding="utf-8") as f:
-        f.write(generate_table_md())
-    git_commit_push("Update from dashboard")
-    render_dashboard_html(write=True)
-    return jsonify({"status":"success","msg":"Changes saved to GitHub!"})
+def generate_html():
+    def generate_html():
+        """Generate interactive HTML dashboard with color-coded difficulty"""
+        rows_html = []
+        count = 1
+        for root, _, files in os.walk(ROOT):
+            for file in sorted(files):
+                if file.endswith(".java"):
+                    path = os.path.join(root, file)
+                    problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                    problem_cell = f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
+                    code_cell = f'<a href="{path}" target="_blank">Code</a>'
 
-@app.route("/update_admin", methods=["POST"])
-def update_admin():
-    data = request.get_json()
-    token = data.get("admin_token","")
-    new_token = data.get("new_token","").strip()
-    global ADMIN_TOKEN_ENV
-    if token != ADMIN_TOKEN_ENV:
-        return jsonify({"status":"error","msg":"Invalid admin token"}),403
-    if not new_token:
-        return jsonify({"status":"error","msg":"New token required"}),400
-    ADMIN_TOKEN_ENV = new_token
-    return jsonify({"status":"success","msg":"Admin token updated successfully"})
+                    # 🎨 Add color-coded level badges
+                    level_class = ""
+                    if level.lower() == "easy":
+                        level_class = "level-easy"
+                    elif level.lower() == "medium":
+                        level_class = "level-medium"
+                    elif level.lower() == "hard":
+                        level_class = "level-hard"
 
-# ----------------- DASHBOARD HTML -----------------
-def render_dashboard_html(write=False):
-    rows_html=[]
-    type_set=set()
-    count=1
-    for root,_,files in os.walk(ROOT):
-        for file in sorted(files):
-            if file.endswith(".java"):
-                file_path=os.path.join(root,file)
-                problem,level,revisit,notes=extract_metadata(file_path)
-                pattern=file.replace(".java","")
-                rel_dir=os.path.relpath(root,ROOT)
-                problem_type="general" if rel_dir=="." else rel_dir.split(os.sep)[0]
-                problem_type=ensure_type(problem_type)
-                type_set.add(problem_type)
-                data_level=(level or "").strip().lower()
-                data_revisit=(revisit or "").strip().lower()
-                data_type=problem_type
-                rel_path=os.path.relpath(file_path)
-                problem_label=problem or pattern
-                rows_html.append(
-                    f"<tr data-type='{data_type}' data-level='{data_level}' data-revisit='{data_revisit}' data-path='{rel_path}'>"
-                    f"<td>{count}</td>"
-                    f"<td>{problem_label}</td>"
-                    f"<td><a href='{rel_path}' target='_blank'>Code</a></td>"
-                    f"<td class='editable-cell'>{level}</td>"
-                    f"<td>{pattern}</td>"
-                    f"<td class='editable-cell'>{revisit}</td>"
-                    f"<td class='editable-cell'>{notes}</td>"
-                    f"</tr>"
-                )
-                count+=1
-    type_options_html="\n".join([f"<option value='{t}'>{t.title()}</option>" for t in sorted(type_set)])
-    html_template="""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSA Dashboard</title>
-<style>
-body{font-family:sans-serif;background:#f5f6f8;margin:20px;}
-table{width:100%;border-collapse:collapse;table-layout:fixed;}
-th,td{padding:8px;border-bottom:1px solid #ddd;overflow-wrap:break-word;}
-th{background:#eee;text-align:left;}
-.editable-cell{background:#f9f7ff;border-radius:4px;}
-.editable-cell[contenteditable="true"]{outline:2px solid #7c3aed;background:#f2ebff;}
-select,button{padding:6px 10px;margin:4px;border-radius:4px;}
-</style>
-</head>
-<body>
-<h1>DSA Dashboard</h1>
-<div>
-Type: <select id="typeFilter"><option value="">All Types</option>""" + type_options_html + """</select>
-Level: <select id="levelFilter"><option value="">All</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
-Revisit: <select id="revisitFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
-<button id="editToggle">Edit Mode</button>
-<button id="saveBtn" style="display:none;">💾 Save</button>
-<button id="changeTokenBtn">🔑 Change Admin Token</button>
-</div>
-<table id="problemsTable"><thead><tr>
-<th>#</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Notes</th>
-</tr></thead><tbody>
-""" + ''.join(rows_html) + """
-</tbody></table>
-<script>
-let editMode=false;
-const table=document.getElementById('problemsTable').querySelector('tbody');
-const editToggle=document.getElementById('editToggle');
-const saveBtn=document.getElementById('saveBtn');
-const changeTokenBtn=document.getElementById('changeTokenBtn');
+                    level_cell = f'<span class="{level_class}">{level}</span>'
 
-function applyFilters(){
-    let typeVal=document.getElementById('typeFilter').value.toLowerCase();
-    let levelVal=document.getElementById('levelFilter').value.toLowerCase();
-    let revisitVal=document.getElementById('revisitFilter').value.toLowerCase();
-    table.querySelectorAll('tr').forEach(row=>{
-        let rowType=row.getAttribute('data-type')||'';
-        let rowLevel=row.getAttribute('data-level')||'';
-        let rowRevisit=row.getAttribute('data-revisit')||'';
-        row.style.display=( (!typeVal||rowType===typeVal)&&(!levelVal||rowLevel===levelVal)&&(!revisitVal||rowRevisit===revisitVal) )?'':'none';
-    });
-}
-['typeFilter','levelFilter','revisitFilter'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
+                    rows_html.append(
+                        f"<tr><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td>"
+                        f"<td>{level_cell}</td><td>{time_complexity}</td>"
+                        f"<td>{revisit}</td><td>{notes}</td></tr>"
+                    )
+                    count += 1
 
-editToggle.addEventListener('click',()=>{
-    editMode=!editMode;
-    document.querySelectorAll('.editable-cell').forEach(cell=>cell.contentEditable=editMode?"true":"false");
-    saveBtn.style.display=editMode?'':'none';
-});
+        html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+    <style>
+    body {{
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f8f9fa;
+    }}
+    h1 {{
+      text-align: center;
+      color: #333;
+    }}
+    select {{
+      margin: 10px;
+      padding: 5px;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 6px;
+    }}
+    th {{
+      background: #007bff;
+      color: white;
+      padding: 10px;
+    }}
+    td {{
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }}
+    tr:hover {{
+      background-color: #f1f1f1;
+    }}
+    .level-easy {{
+      background: #d4edda;
+      color: #155724;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }}
+    .level-medium {{
+      background: #fff3cd;
+      color: #856404;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }}
+    .level-hard {{
+      background: #f8d7da;
+      color: #721c24;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }}
+    </style>
+    </head>
+    <body>
 
-saveBtn.addEventListener('click',async()=>{
-    let token=prompt("Enter Admin Token");
-    if(!token)return alert("Admin token required");
-    let updates=[];
-    table.querySelectorAll('tr').forEach(row=>{
-        updates.push({
-            path:row.dataset.path,
-            level:row.querySelector('td:nth-child(4)').textContent.trim(),
-            revisit:row.querySelector('td:nth-child(6)').textContent.trim(),
-            notes:row.querySelector('td:nth-child(7)').textContent.trim()
-        });
-    });
-    let res=await fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_token:token,updates:updates})});
-    let result=await res.json();
-    alert(result.msg);
-    if(result.status==="success") location.reload();
-});
+    <h1>📘 DSA Problem Dashboard</h1>
 
-changeTokenBtn.addEventListener('click',async()=>{
-    let current=prompt("Enter current Admin Token");
-    if(!current)return alert("Token required");
-    let newToken=prompt("Enter new Admin Token");
-    if(!newToken)return alert("New token required");
-    let res=await fetch('/update_admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_token:current,new_token:newToken})});
-    let result=await res.json();
-    alert(result.msg);
-});
-</script>
-</body>
-</html>
+    <div style="text-align:center;">
+      <label>Filter by Level:</label>
+      <select id="levelFilter">
+        <option value="">All</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+
+      <label>Filter by Revisit:</label>
+      <select id="revisitFilter">
+        <option value="">All</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+
+    <table id="problemsTable" class="datatable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Problem</th>
+          <th>Solution</th>
+          <th>Level</th>
+          <th>Time Complexity</th>
+          <th>Revisit</th>
+          <th>Quick Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {''.join(rows_html)}
+      </tbody>
+    </table>
+
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {{
+      const table = document.querySelector("#problemsTable");
+      const dataTable = new simpleDatatables.DataTable(table);
+
+      const levelFilter = document.getElementById("levelFilter");
+      const revisitFilter = document.getElementById("revisitFilter");
+
+      function applyFilters() {{
+        const levelVal = levelFilter.value.toLowerCase();
+        const revisitVal = revisitFilter.value.toLowerCase();
+
+        dataTable.rows().show();
+
+        dataTable.data.forEach((row, index) => {{
+          const level = row.cells[3].textContent.trim().toLowerCase();
+          const revisit = row.cells[5].textContent.trim().toLowerCase();
+
+          const matchLevel = !levelVal || level === levelVal;
+          const matchRevisit = !revisitVal || revisit === revisitVal;
+
+          if (!(matchLevel && matchRevisit)) {{
+            dataTable.rows().hide([index]);
+          }}
+        }});
+      }}
+
+      levelFilter.addEventListener("change", applyFilters);
+      revisitFilter.addEventListener("change", applyFilters);
+    }});
+    </script>
+
+    </body>
+    </html>
+    """
+        with open(HTML_PATH, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        print("✅ index.html (Dashboard) generated successfully!")
+
+
+def update_readme():
+    """Generate README.md with a dashboard link"""
+    table = generate_table()
+    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
+    content = f"""# 🚀 DSA in Java
+
+📊 **[View Interactive Dashboard →]({dashboard_url})**
+_Filter by Level, Time Complexity, and Revisit status interactively!_
+
+---
+
+Automatically generated table of solved problems.
+
+{table}
 """
-    if write:
-        with open(HTML_PATH,"w",encoding="utf-8") as f:
-            f.write(html_template)
-    return html_template
+    with open(README_PATH, "w", encoding="utf-8") as f:
+        f.write(content)
+    print("✅ README.md updated successfully!")
 
-# ----------------- MAIN -----------------
-if __name__=="__main__":
-    with open(README_PATH,"w",encoding="utf-8") as f:
-        f.write(generate_table_md())
-    render_dashboard_html(write=True)
-    print("✅ Dashboard ready at http://localhost:5000")
-    app.run(host="0.0.0.0", port=5000, debug=False)
+
+if __name__ == "__main__":
+    update_readme()
+    generate_html()
