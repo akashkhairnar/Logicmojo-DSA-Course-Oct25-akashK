@@ -11,7 +11,7 @@ def extract_metadata(file_path):
     link = ""
     notes = "-"
     level = "-"
-    time_complexity = "-"
+    pattern = "-"
     revisit = "-"
 
     try:
@@ -31,8 +31,8 @@ def extract_metadata(file_path):
                 elif line.startswith("// Level:"):
                     level = line.replace("// Level:", "").strip()
 
-                elif line.startswith("// TimeComplexity:"):
-                    time_complexity = line.replace("// TimeComplexity:", "").strip()
+                elif line.startswith("// Pattern:"):
+                    pattern = line.replace("// Pattern:", "").strip()
 
                 elif line.startswith("// Revisit:"):
                     revisit = line.replace("// Revisit:", "").strip()
@@ -40,7 +40,7 @@ def extract_metadata(file_path):
     except Exception as e:
         print(f"⚠️ Error reading {file_path}: {e}")
 
-    return problem, link, notes, level, time_complexity, revisit
+    return problem, link, notes, level, pattern, revisit
 
 
 def generate_table():
@@ -54,13 +54,13 @@ def generate_table():
                 path = os.path.join(root, file)
 
                 github_link = f"[Code]({path})"
-                problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                problem, link, notes, level, pattern, revisit = extract_metadata(path)
 
                 problem_display = f"[{problem}]({link})" if link else problem
 
                 rows.append(
                     f"| {count} | {problem_display} | {github_link} |"
-                    f" {level} | {time_complexity} | {revisit} | {notes} |"
+                    f" {level} | {pattern} | {revisit} | {notes} |"
                 )
                 count += 1
 
@@ -68,7 +68,7 @@ def generate_table():
         return "No Java files found yet."
 
     header = (
-        "| # | Problem | Solution | Level | Time Complexity | Revisit | Quick Notes |\n"
+        "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n"
         "|---|----------|-----------|--------|-----------------|----------|--------------|"
     )
 
@@ -85,7 +85,7 @@ def generate_html():
             if file.endswith(".java"):
                 path = os.path.join(root, file)
 
-                problem, link, notes, level, time_complexity, revisit = extract_metadata(path)
+                problem, link, notes, level, pattern, revisit = extract_metadata(path)
 
                 problem_cell = (
                     f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
@@ -108,7 +108,7 @@ def generate_html():
                     f"<td>{problem_cell}</td>"
                     f"<td>{code_cell}</td>"
                     f"<td>{level_cell}</td>"
-                    f"<td>{time_complexity}</td>"
+                    f"<td>{pattern}</td>"
                     f"<td>{revisit}</td>"
                     f"<td>{notes}</td></tr>"
                 )
@@ -182,7 +182,7 @@ tr:hover {{
       <th>Problem</th>
       <th>Solution</th>
       <th>Level</th>
-      <th>Time Complexity</th>
+      <th>Pattern</th>
       <th>Revisit</th>
       <th>Quick Notes</th>
     </tr>
