@@ -14,4 +14,4 @@ Automatically generated list of solved problems.
 | 4 | [167. Two Sum II - Input Array Is Sorted](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/) | [Code](dsa/Array/Two Sum II.java) | Easy | - | no | modified bimaey search(as it is sorted) |
 | 5 | [Two Sum](https://leetcode.com/problems/two-sum/description/.) | [Code](dsa/Array/TwoSum.java) | Easy | - | No | Use map to store num[i],index. |
 | 6 | [11. Container With Most Water](https://leetcode.com/problems/container-with-most-water/description/) | [Code](dsa/Array/container-with-most-water.java) | Easy | - | no | Two pointer- calculate area whatever hight is slower from low & high move that |
-| 7 | [42. Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/) | [Code](dsa/Array/rapping-rain-water.java) | Medium | - | yes | store max left & right heigh for every index then caculate trap water |
+| 7 | [42. Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/) | [Code](dsa/Array/trapping-rain-water.java) | Medium | - | yes | store max left & right heigh for every index then caculate trap water |
