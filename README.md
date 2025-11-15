@@ -13,3 +13,4 @@ Automatically generated list of solved problems.
 | 3 | [26. Remove Duplicates frm sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description) | [Code](dsa/Array/Remove Duplicates from Sorted Array.java) | Easy | - | no | two pointer if find different element then update element of slow |
 | 4 | [167. Two Sum II - Input Array Is Sorted](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/) | [Code](dsa/Array/Two Sum II.java) | Easy | - | no | modified bimaey search(as it is sorted) |
 | 5 | [Two Sum](https://leetcode.com/problems/two-sum/description/.) | [Code](dsa/Array/TwoSum.java) | Easy | - | No | Use map to store num[i],index. |
+| 6 | [11. Container With Most Water](https://leetcode.com/problems/container-with-most-water/description/) | [Code](dsa/Array/container-with-most-water.java) | Easy | - | no | Two pointer- calculate area whatever hight is slower from low & high move that |
