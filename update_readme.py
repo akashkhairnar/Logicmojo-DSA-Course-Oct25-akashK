@@ -96,7 +96,7 @@ def generate_table():
         for e in entries_sorted:
             path = e["path"].replace('\\', '/')
             github_link = f"[Code]({path})"
-            problem_display = f"[{escape_md(e['problem'])}]({e['link']})" if e['link'] else escape_md(e['problem'])
+            problem_display = f"[{escape_md(e['problem'])}]({e['link']})" if e["link"] else escape_md(e["problem"])
             level_text = e["level"] if e["level"] else "-"
             rows.append(f"| {count} | {problem_display} | {github_link} | {level_text} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |")
             count += 1
@@ -184,20 +184,31 @@ document.addEventListener('DOMContentLoaded', function() {{
     const revisitFilter = document.getElementById('revisitFilter');
 
     function applyFilters() {{
-        Array.from(table.tBodies[0].rows).forEach(row => {{
+        const topicRows = document.querySelectorAll('tr.topic-header');
+        const dataRows = Array.from(table.tBodies[0].rows).filter(r => r.hasAttribute('data-topic'));
+
+        dataRows.forEach(row => {{
             const topic = row.getAttribute('data-topic');
             const level = row.getAttribute('data-level');
             const revisit = row.getAttribute('data-revisit');
             const tVal = topicFilter.value;
             const lVal = levelFilter.value;
             const rVal = revisitFilter.value;
+
             if ((tVal === 'All' || topic === tVal) && 
                 (lVal === 'All' || level === lVal) && 
                 (rVal === 'All' || revisit === rVal)) {{
-                row.style.display='';
+                row.style.display = '';
             }} else {{
-                row.style.display='none';
+                row.style.display = 'none';
             }}
+        }});
+
+        // Show/hide topic headers
+        topicRows.forEach(header => {{
+            const topicName = header.textContent.split(' (')[0].trim();
+            const anyVisible = dataRows.some(r => r.getAttribute('data-topic') === topicName && r.style.display !== 'none');
+            header.style.display = anyVisible ? '' : 'none';
         }});
     }}
 
