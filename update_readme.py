@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import html
 
 ROOT = "dsa"                     # Folder where all your .java files
 README_PATH = "README.md"
@@ -33,9 +34,8 @@ def extract_metadata(file_path):
         print(f"⚠️ Error reading {file_path}: {e}")
     return problem, link, notes, level, pattern, revisit
 
-def escape_md(text: str) -> str:
-    """Escape pipes in markdown."""
-    return text.replace("|", "\\|")
+def escape_html(text):
+    return html.escape(text or "")
 
 def collect_files():
     """Collect all Java files and metadata."""
@@ -78,14 +78,13 @@ def collect_files():
 
 def generate_html():
     entries, topics, levels, revisits = collect_files()
-    # sort entries by mtime descending
     entries.sort(key=lambda x: x["mtime"], reverse=True)
 
     rows_html = ""
     count = 1
     for e in entries:
-        problem_cell = f'<a href="{e["link"]}" target="_blank">{escape_md(e["problem"])}</a>' if e["link"] else escape_md(e["problem"])
-        code_cell = f'<a href="{e["path"]}" target="_blank">Code</a>'
+        problem_cell = f'<a href="{escape_html(e["link"])}" target="_blank">{escape_html(e["problem"])}</a>' if e["link"] else escape_html(e["problem"])
+        code_cell = f'<a href="{escape_html(e["path"])}" target="_blank">Code</a>'
         level_lower = (e["level"] or "").lower()
         if level_lower == "easy":
             level_cell = '<span class="level-easy">Easy</span>'
@@ -94,8 +93,8 @@ def generate_html():
         elif level_lower == "hard":
             level_cell = '<span class="level-hard">Hard</span>'
         else:
-            level_cell = escape_md(e["level"]) if e["level"] else "-"
-        rows_html += f"<tr><td>{count}</td><td>{escape_md(e['topic'])}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_md(e['pattern'])}</td><td>{escape_md(e['revisit'])}</td><td>{escape_md(e['notes'])}</td></tr>\n"
+            level_cell = escape_html(e["level"]) if e["level"] else "-"
+        rows_html += f"<tr><td>{count}</td><td>{escape_html(e['topic'])}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_html(e['pattern'])}</td><td>{escape_html(e['revisit'])}</td><td>{escape_html(e['notes'])}</td></tr>\n"
         count += 1
 
     html_content = f"""<!DOCTYPE html>
@@ -147,11 +146,11 @@ tr:hover {{ background-color:#f1f1f1; }}
 <label for="searchInput">Search:</label>
 <input type="text" id="searchInput" placeholder="Search problem, pattern, notes..."/>
 <label for="topicFilter">Topic:</label>
-<select id="topicFilter"><option value="">All</option>{''.join([f"<option value='{escape_md(t)}'>{escape_md(t)}</option>" for t in topics])}</select>
+<select id="topicFilter"><option value="">All</option>{''.join([f"<option value='{escape_html(t)}'>{escape_html(t)}</option>" for t in topics])}</select>
 <label for="levelFilter">Level:</label>
-<select id="levelFilter"><option value="">All</option>{''.join([f"<option value='{escape_md(l)}'>{escape_md(l)}</option>" for l in levels])}</select>
+<select id="levelFilter"><option value="">All</option>{''.join([f"<option value='{escape_html(l)}'>{escape_html(l)}</option>" for l in levels])}</select>
 <label for="revisitFilter">Revisit:</label>
-<select id="revisitFilter"><option value="">All</option>{''.join([f"<option value='{escape_md(r)}'>{escape_md(r)}</option>" for r in revisits])}</select>
+<select id="revisitFilter"><option value="">All</option>{''.join([f"<option value='{escape_html(r)}'>{escape_html(r)}</option>" for r in revisits])}</select>
 </div>
 
 <table id="problemsTable">
@@ -166,7 +165,11 @@ tr:hover {{ background-color:#f1f1f1; }}
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {{
-    const dt = new simpleDatatables.DataTable("#problemsTable");
+    const dt = new simpleDatatables.DataTable("#problemsTable", {{
+        perPage: 20,
+        searchable: true,
+        sortable: true
+    }});
 
     const topicFilter = document.getElementById("topicFilter");
     const levelFilter = document.getElementById("levelFilter");
@@ -174,25 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {{
     const searchInput = document.getElementById("searchInput");
 
     function applyFilters() {{
-        const topicVal = topicFilter.value.toLowerCase();
-        const levelVal = levelFilter.value.toLowerCase();
-        const revisitVal = revisitFilter.value.toLowerCase();
-        const searchVal = searchInput.value.toLowerCase();
-
-        dt.rows().forEach(row => {{
-            const rowTopic = row.cells[1].textContent.toLowerCase();
-            const rowLevel = row.cells[4].textContent.toLowerCase();
-            const rowRevisit = row.cells[6].textContent.toLowerCase();
-            const rowText = (row.cells[2].textContent + " " + row.cells[5].textContent + " " + row.cells[7].textContent).toLowerCase();
-            if ((topicVal === "" || rowTopic.includes(topicVal)) &&
-                (levelVal === "" || rowLevel.includes(levelVal)) &&
-                (revisitVal === "" || rowRevisit.includes(revisitVal)) &&
-                (rowText.includes(searchVal))) {{
-                row.show();
-            }} else {{
-                row.hide();
-            }}
-        }});
+        dt.columns().search('');
+        if(topicFilter.value) dt.columns(1).search(topicFilter.value, false, true);
+        if(levelFilter.value) dt.columns(4).search(levelFilter.value, false, true);
+        if(revisitFilter.value) dt.columns(6).search(revisitFilter.value, false, true);
+        dt.search(searchInput.value);
+        dt.refresh();
     }}
 
     topicFilter.addEventListener("change", applyFilters);
@@ -210,14 +200,14 @@ document.addEventListener('DOMContentLoaded', function() {{
     print(f"✅ {HTML_PATH} generated successfully!")
 
 def update_readme():
-    entries, topics, levels, revisits = collect_files()
+    entries, _, _, _ = collect_files()
     entries.sort(key=lambda x: x["mtime"], reverse=True)
     rows = []
     count = 1
     for e in entries:
-        problem_display = f"[{escape_md(e['problem'])}]({e['link']})" if e["link"] else escape_md(e['problem'])
-        code_link = f"[Code]({e['path']})"
-        rows.append(f"| {count} | {problem_display} | {code_link} | {e['level'] or '-'} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |")
+        problem_display = f"[{escape_html(e['problem'])}]({e['link']})" if e["link"] else escape_html(e['problem'])
+        code_link = f"[Code]({escape_html(e['path'])})"
+        rows.append(f"| {count} | {problem_display} | {code_link} | {e['level'] or '-'} | {escape_html(e['pattern'])} | {escape_html(e['revisit'])} | {escape_html(e['notes'])} |")
         count += 1
 
     table_md = "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|\n" + "\n".join(rows)
