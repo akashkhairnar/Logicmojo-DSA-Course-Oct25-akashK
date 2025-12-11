@@ -72,10 +72,10 @@ def collect_files_by_topic():
     return topics
 
 def generate_table():
+    """Generate markdown table for README."""
     topics = collect_files_by_topic()
     if not topics:
         return "No Java files found yet."
-
     sorted_topics = sorted(topics.keys())
     rows = []
     count = 1
@@ -102,10 +102,11 @@ def generate_table():
 def generate_html():
     topics = collect_files_by_topic()
     sorted_topics = sorted(topics.keys())
-    rows_html = []
     count = 1
     levels_set = set()
     revisits_set = set()
+
+    all_rows_data = []
 
     for topic in sorted_topics:
         entries = topics[topic]
@@ -126,9 +127,19 @@ def generate_html():
             else:
                 level_cell = escape_md(level) if level else "-"
 
-            rows_html.append(f"<tr data-topic='{escape_md(topic)}' data-level='{escape_md(level)}' data-revisit='{escape_md(e['revisit'])}' data-search='{escape_md(e['problem']+e['pattern']+e['notes']).lower()}'><td>{count}</td><td>{escape_md(topic)}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_md(e['pattern'])}</td><td>{escape_md(e['revisit'])}</td><td>{escape_md(e['notes'])}</td></tr>")
+            all_rows_data.append([
+                str(count),
+                escape_md(topic),
+                problem_cell,
+                code_cell,
+                level_cell,
+                escape_md(e["pattern"]),
+                escape_md(e["revisit"]),
+                escape_md(e["notes"])
+            ])
             count += 1
 
+    # Generate HTML
     html_content = f"""<!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -177,14 +188,14 @@ tr:hover {{ background-color:#f1f1f1; }}
 <table id='problemsTable'>
 <thead><tr><th>#</th><th>Topic</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Quick Notes</th></tr></thead>
 <tbody>
-{''.join(rows_html)}
+{''.join([f"<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td><td>{r[7]}</td></tr>" for r in all_rows_data])}
 </tbody>
 </table>
 
 <script src='https://cdn.jsdelivr.net/npm/simple-datatables@latest' defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {{
-    const dataTable = new simpleDatatables.DataTable("#problemsTable");
+    const dt = new simpleDatatables.DataTable("#problemsTable");
     const topicFilter = document.getElementById('topicFilter');
     const levelFilter = document.getElementById('levelFilter');
     const revisitFilter = document.getElementById('revisitFilter');
@@ -196,21 +207,23 @@ document.addEventListener('DOMContentLoaded', function() {{
         const revisitVal = revisitFilter.value.toLowerCase();
         const searchVal = searchInput.value.toLowerCase();
 
-        dataTable.rows().every(function(row) {{
-            const topic = this.cells(1).data().toLowerCase();
-            const levelCell = this.cells(4).data().toLowerCase();
-            const revisitCell = this.cells(6).data().toLowerCase();
-            const searchText = this.cells(2).data().toLowerCase() + " " + this.cells(5).data().toLowerCase() + " " + this.cells(7).data().toLowerCase();
+        const filteredRows = [];
+        dt.data.forEach(row => {{
+            const topic = row[1].toLowerCase();
+            const level = row[4].toLowerCase();
+            const revisit = row[6].toLowerCase();
+            const searchText = (row[2] + " " + row[5] + " " + row[7]).toLowerCase();
 
             if ((topicVal === 'all' || topic.includes(topicVal)) &&
-                (levelVal === 'all' || levelCell.includes(levelVal)) &&
-                (revisitVal === 'all' || revisitCell.includes(revisitVal)) &&
+                (levelVal === 'all' || level.includes(levelVal)) &&
+                (revisitVal === 'all' || revisit.includes(revisitVal)) &&
                 (searchText.includes(searchVal))) {{
-                this.show();
-            }} else {{
-                this.hide();
+                filteredRows.push(row);
             }}
         }});
+
+        dt.rows().remove();
+        dt.rows().add(filteredRows);
     }}
 
     topicFilter.addEventListener('change', applyFilters);
