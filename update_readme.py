@@ -1,9 +1,10 @@
 import os
 import html
 
-ROOT = "dsa"  # folder with all .java files
+ROOT = "dsa"  # Folder with all .java files
 README_PATH = "README.md"
 HTML_PATH = "index.html"
+DASHBOARD_URL = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
 
 # ---- Extract metadata from Java files ----
 def extract_metadata(file_path):
@@ -33,7 +34,7 @@ def extract_metadata(file_path):
         print(f"⚠️ Error reading {file_path}: {e}")
     return problem, link, notes, level, pattern, revisit
 
-# ---- Escape for markdown/html ----
+# ---- Escape helpers ----
 def escape_md(text):
     return text.replace("|", "\\|") if text else ""
 
@@ -45,12 +46,14 @@ def normalize_yes_no(value):
     if not value:
         return ""
     value = value.strip().lower()
-    if value in ["yes", "y", "true", "easy", "medium", "hard"]:
+    if value in ["yes", "y", "true"]:
         return "Yes"
     elif value in ["no", "n", "false"]:
         return "No"
+    elif value in ["easy", "medium", "hard"]:
+        return value.title()
     else:
-        return value.title()  # capitalize first letter
+        return value.title()
 
 # ---- Collect all files with metadata ----
 def collect_files():
@@ -70,7 +73,6 @@ def collect_files():
             path = os.path.join(root, file)
             problem, link, notes, level, pattern, revisit = extract_metadata(path)
 
-            # Normalize level and revisit internally
             level_norm = normalize_yes_no(level)
             revisit_norm = normalize_yes_no(revisit)
 
@@ -82,7 +84,7 @@ def collect_files():
                 "level": level_norm,
                 "pattern": pattern,
                 "revisit": revisit_norm,
-                "path": path.replace("\\", "/"),
+                "path": path.replace("\\", "/")
             })
             topics_set.add(topic)
             if level_norm:
@@ -98,27 +100,31 @@ def collect_files():
 def generate_readme():
     entries, _, _, _ = collect_files()
     if not entries:
-        table = "No Java files found yet."
+        table_content = "No Java files found yet."
     else:
-        table = "| # | Topic | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n"
-        table += "|---|-------|---------|---------|-------|---------|---------|-------------|\n"
+        table_content = ""
+        current_topic = ""
         count = 1
         for e in entries:
-            problem_md = f"[{escape_md(e['problem'])}]({e['link']})" if e['link'] else escape_md(e['problem'])
-            table += f"| {count} | {escape_md(e['topic'])} | {problem_md} | [Code]({escape_md(e['path'])}) | {escape_md(e['level'])} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |\n"
+            if e['topic'] != current_topic:
+                current_topic = e['topic']
+                table_content += f"\n### {escape_md(current_topic)}\n\n"
+                table_content += "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n"
+                table_content += "|---|---------|---------|-------|---------|---------|-------------|\n"
+                count = 1
+
+            problem_md = f"[{escape_md(e['problem'])}]({escape_md(e['link'])})" if e['link'] else escape_md(e['problem'])
+            table_content += f"| {count} | {problem_md} | [Code]({escape_md(e['path'])}) | {escape_md(e['level'])} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |\n"
             count += 1
-    dashboard_url = "index.html"
+
     content = f"""# 🚀 DSA in Java
 
-📊 **[View Interactive Dashboard →]({dashboard_url})**
+📊 **[View Interactive Dashboard →]({DASHBOARD_URL})**
 
----
-
-Automatically generated list of solved problems (topic-wise, sorted).
-
-{table}
+Automatically generated list of solved problems, grouped by topic.
+{table_content}
 """
-    with open(README_PATH, "w", encoding="utf-8") as f:
+    with open(REAME_PATH, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"✅ {README_PATH} updated successfully!")
 
@@ -138,39 +144,19 @@ def generate_html():
 <meta charset="UTF-8">
 <title>DSA Dashboard</title>
 <style>
-body {{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background:#f5f7fa; margin:20px;
-}}
-h1 {{
-    text-align:center; color:#222; margin-bottom:20px;
-}}
-.filter-container {{
-    display:flex; flex-wrap:wrap; gap:12px; background:white; padding:16px;
-    border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:20px; align-items:center;
-}}
+body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; margin:20px; }}
+h1 {{ text-align:center; color:#222; margin-bottom:20px; }}
+.filter-container {{ display:flex; flex-wrap:wrap; gap:12px; background:white; padding:16px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:20px; align-items:center; }}
 .filter-container label {{ font-weight:bold; margin-right:6px; }}
-.filter-container select, .filter-container input[type='text'] {{
-    padding:6px 10px; border-radius:6px; border:1px solid #ccc; min-width:150px; transition:0.3s;
-}}
+.filter-container select, .filter-container input[type='text'] {{ padding:6px 10px; border-radius:6px; border:1px solid #ccc; min-width:150px; transition:0.3s; }}
 .filter-container select:hover, .filter-container input[type='text']:hover {{ border-color:#007bff; }}
 .table-wrapper {{ overflow-x:auto; }}
-table {{
-    width:100%; border-collapse: collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.06); border-radius:6px;
-}}
-th {{
-    background:#007bff; color:white; padding:12px; position:sticky; top:0; z-index:1;
-}}
-td {{
-    padding:10px; border-bottom:1px solid #ddd;
-}}
+table {{ width:100%; border-collapse: collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.06); border-radius:6px; }}
+th {{ background:#007bff; color:white; padding:12px; position:sticky; top:0; z-index:1; }}
+td {{ padding:10px; border-bottom:1px solid #ddd; }}
 tr:hover {{ background-color:#f1f1f1; }}
-.level-badge {{
-    background:#d4edda; color:#155724; padding:4px 10px; border-radius:4px; font-weight:bold;
-}}
-@media(max-width:768px) {{
-    .filter-container {{ flex-direction:column; align-items:flex-start; }}
-}}
+.level-badge {{ background:#d4edda; color:#155724; padding:4px 10px; border-radius:4px; font-weight:bold; }}
+@media(max-width:768px) {{ .filter-container {{ flex-direction:column; align-items:flex-start; }} }}
 </style>
 </head>
 <body>
