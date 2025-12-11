@@ -1,9 +1,7 @@
 import os
-from pathlib import Path
 import html
 
 ROOT = "dsa"                     # Folder where all your .java files
-README_PATH = "README.md"
 HTML_PATH = "index.html"
 
 def extract_metadata(file_path):
@@ -53,10 +51,6 @@ def collect_files():
             if not file.endswith(".java"):
                 continue
             path = os.path.join(root, file)
-            try:
-                mtime = os.path.getmtime(path)
-            except Exception:
-                mtime = 0
             problem, link, notes, level, pattern, revisit = extract_metadata(path)
             all_entries.append({
                 "topic": topic,
@@ -67,7 +61,6 @@ def collect_files():
                 "pattern": pattern,
                 "revisit": revisit,
                 "path": path.replace("\\", "/"),
-                "mtime": mtime
             })
             topics_set.add(topic)
             if level:
@@ -78,11 +71,9 @@ def collect_files():
 
 def generate_html():
     entries, topics, levels, revisits = collect_files()
-    entries.sort(key=lambda x: x["mtime"], reverse=True)
 
     rows_html = ""
-    count = 1
-    for e in entries:
+    for i, e in enumerate(entries, start=1):
         problem_cell = f'<a href="{escape_html(e["link"])}" target="_blank">{escape_html(e["problem"])}</a>' if e["link"] else escape_html(e["problem"])
         code_cell = f'<a href="{escape_html(e["path"])}" target="_blank">Code</a>'
         level_lower = (e["level"] or "").lower()
@@ -94,15 +85,13 @@ def generate_html():
             level_cell = '<span class="level-hard">Hard</span>'
         else:
             level_cell = escape_html(e["level"]) if e["level"] else "-"
-        rows_html += f"<tr><td>{count}</td><td>{escape_html(e['topic'])}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_html(e['pattern'])}</td><td>{escape_html(e['revisit'])}</td><td>{escape_html(e['notes'])}</td></tr>\n"
-        count += 1
+        rows_html += f"<tr><td>{i}</td><td>{escape_html(e['topic'])}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_html(e['pattern'])}</td><td>{escape_html(e['revisit'])}</td><td>{escape_html(e['notes'])}</td></tr>\n"
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>DSA Dashboard</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
 <style>
 body {{
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -162,33 +151,41 @@ tr:hover {{ background-color:#f1f1f1; }}
 </tbody>
 </table>
 
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {{
-    const dt = new simpleDatatables.DataTable("#problemsTable", {{
-        perPage: 20,
-        searchable: true,
-        sortable: true
-    }});
-
+    const searchInput = document.getElementById("searchInput");
     const topicFilter = document.getElementById("topicFilter");
     const levelFilter = document.getElementById("levelFilter");
     const revisitFilter = document.getElementById("revisitFilter");
-    const searchInput = document.getElementById("searchInput");
+    const table = document.getElementById("problemsTable");
+    const rows = Array.from(table.tBodies[0].rows);
 
     function applyFilters() {{
-        dt.columns().search('');
-        if(topicFilter.value) dt.columns(1).search(topicFilter.value, false, true);
-        if(levelFilter.value) dt.columns(4).search(levelFilter.value, false, true);
-        if(revisitFilter.value) dt.columns(6).search(revisitFilter.value, false, true);
-        dt.search(searchInput.value);
-        dt.refresh();
+        const searchText = searchInput.value.toLowerCase();
+        const topicValue = topicFilter.value.toLowerCase();
+        const levelValue = levelFilter.value.toLowerCase();
+        const revisitValue = revisitFilter.value.toLowerCase();
+
+        rows.forEach(row => {{
+            const topic = row.cells[1].textContent.toLowerCase();
+            const level = row.cells[4].textContent.toLowerCase();
+            const revisit = row.cells[6].textContent.toLowerCase();
+            const text = row.textContent.toLowerCase();
+
+            const match = 
+                (!topicValue || topic.includes(topicValue)) &&
+                (!levelValue || level.includes(levelValue)) &&
+                (!revisitValue || revisit.includes(revisitValue)) &&
+                (!searchText || text.includes(searchText));
+
+            row.style.display = match ? "" : "none";
+        }});
     }}
 
+    searchInput.addEventListener("input", applyFilters);
     topicFilter.addEventListener("change", applyFilters);
     levelFilter.addEventListener("change", applyFilters);
     revisitFilter.addEventListener("change", applyFilters);
-    searchInput.addEventListener("input", applyFilters);
 }});
 </script>
 
@@ -199,33 +196,5 @@ document.addEventListener('DOMContentLoaded', function() {{
         f.write(html_content)
     print(f"✅ {HTML_PATH} generated successfully!")
 
-def update_readme():
-    entries, _, _, _ = collect_files()
-    entries.sort(key=lambda x: x["mtime"], reverse=True)
-    rows = []
-    count = 1
-    for e in entries:
-        problem_display = f"[{escape_html(e['problem'])}]({e['link']})" if e["link"] else escape_html(e['problem'])
-        code_link = f"[Code]({escape_html(e['path'])})"
-        rows.append(f"| {count} | {problem_display} | {code_link} | {e['level'] or '-'} | {escape_html(e['pattern'])} | {escape_html(e['revisit'])} | {escape_html(e['notes'])} |")
-        count += 1
-
-    table_md = "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n|---|----------|-----------|--------|-----------------|----------|--------------|\n" + "\n".join(rows)
-    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
-    content = f"""# 🚀 DSA in Java
-
-📊 **[View Interactive Dashboard →]({dashboard_url})**
-
----
-
-Automatically generated list of solved problems.
-
-{table_md}
-"""
-    with open(README_PATH, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"✅ {README_PATH} updated successfully!")
-
 if __name__ == "__main__":
-    update_readme()
     generate_html()
