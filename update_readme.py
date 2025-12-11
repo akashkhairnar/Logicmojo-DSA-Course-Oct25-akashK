@@ -94,13 +94,13 @@ def generate_table():
         entries_sorted = sorted(entries, key=lambda e: e["mtime"], reverse=True)
         rows.append(f"| **{escape_md(topic)} ({len(entries_sorted)})** |  |  |  |  |  |  |")
         for e in entries_sorted:
-            path = e["path"].replace('\\','/')
+            path = e["path"].replace('\\', '/')
             github_link = f"[Code]({path})"
             problem_display = f"[{escape_md(e['problem'])}]({e['link']})" if e['link'] else escape_md(e['problem'])
             level_text = e["level"] if e["level"] else "-"
             rows.append(f"| {count} | {problem_display} | {github_link} | {level_text} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |")
             count += 1
-        rows.append("|  |  |  |  |  |  |  |")
+        rows.append("|  |  |  |  |  |  |  |")  # Blank line between topics
 
     return header + "\n" + "\n".join(rows)
 
@@ -110,22 +110,21 @@ def generate_html():
     sorted_topics = sorted(topics.keys())
     rows_html = []
     count = 1
-
     levels_set = set()
     revisits_set = set()
 
     for topic in sorted_topics:
         entries = topics[topic]
         entries_sorted = sorted(entries, key=lambda e: e["mtime"], reverse=True)
-        rows_html.append(f"<tr class='topic-header'><td colspan=8 style='background:#f1f5f9;font-weight:bold'>{escape_md(topic)} ({len(entries_sorted)})</td></tr>")
+        # Topic header row
+        rows_html.append(f"<tr class='topic-header'><td colspan=7 style='background:#f1f5f9;font-weight:bold'>{escape_md(topic)} ({len(entries_sorted)})</td></tr>")
         for e in entries_sorted:
-            path = e["path"].replace('\\','/')
-            problem_cell = f'<a href="{e['link']}" target="_blank">{escape_md(e['problem'])}</a>' if e['link'] else escape_md(e['problem'])
+            path = e["path"].replace('\\', '/')
+            problem_cell = f'<a href="{e["link"]}" target="_blank">{escape_md(e["problem"])}</a>' if e["link"] else escape_md(e["problem"])
             code_cell = f'<a href="{path}" target="_blank">Code</a>'
             level = (e["level"] or "").strip()
             revisits_set.add(e["revisit"])
             levels_set.add(level)
-
             if level.lower() == "easy":
                 level_cell = '<span class="level-easy">Easy</span>'
             elif level.lower() == "medium":
@@ -158,6 +157,7 @@ tr:hover {{ background-color:#f1f1f1; }}
 </style>
 </head>
 <body>
+
 <h1>📘 DSA Problem Dashboard</h1>
 
 <div class='filter-bar'>
@@ -175,7 +175,7 @@ Revisit: <select id='revisitFilter'><option value='All'>All</option>{''.join([f"
 
 <script src='https://cdn.jsdelivr.net/npm/simple-datatables@latest' defer></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {{
     const table = document.querySelector('#problemsTable');
     const dataTable = new simpleDatatables.DataTable(table);
 
@@ -183,27 +183,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const levelFilter = document.getElementById('levelFilter');
     const revisitFilter = document.getElementById('revisitFilter');
 
-    function applyFilters() {
-        const tVal = topicFilter.value;
-        const lVal = levelFilter.value;
-        const rVal = revisitFilter.value;
-        Array.from(table.tBodies[0].rows).forEach(row => {
+    function applyFilters() {{
+        Array.from(table.tBodies[0].rows).forEach(row => {{
             const topic = row.getAttribute('data-topic');
             const level = row.getAttribute('data-level');
             const revisit = row.getAttribute('data-revisit');
-            if ((tVal === 'All' || topic === tVal) && (lVal === 'All' || level === lVal) && (rVal === 'All' || revisit === rVal)) {
+            const tVal = topicFilter.value;
+            const lVal = levelFilter.value;
+            const rVal = revisitFilter.value;
+            if ((tVal === 'All' || topic === tVal) && 
+                (lVal === 'All' || level === lVal) && 
+                (rVal === 'All' || revisit === rVal)) {{
                 row.style.display='';
-            } else {
+            }} else {{
                 row.style.display='none';
-            }
-        });
-    }
+            }}
+        }});
+    }}
 
     topicFilter.addEventListener('change', applyFilters);
     levelFilter.addEventListener('change', applyFilters);
     revisitFilter.addEventListener('change', applyFilters);
-});
+}});
 </script>
+
 </body>
 </html>"""
 
@@ -221,6 +224,7 @@ def update_readme():
 📊 **[View Interactive Dashboard →]({dashboard_url})**
 
 ---
+
 Automatically generated list of solved problems (grouped by topic).
 
 {table}
