@@ -45,20 +45,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const revisitFilter = document.getElementById('revisitFilter');
 
     function applyFilters() {
-        Array.from(table.tBodies[0].rows).forEach(row => {
+        const topicRows = document.querySelectorAll('tr.topic-header');
+        const dataRows = Array.from(table.tBodies[0].rows).filter(r => r.hasAttribute('data-topic'));
+
+        dataRows.forEach(row => {
             const topic = row.getAttribute('data-topic');
             const level = row.getAttribute('data-level');
             const revisit = row.getAttribute('data-revisit');
             const tVal = topicFilter.value;
             const lVal = levelFilter.value;
             const rVal = revisitFilter.value;
+
             if ((tVal === 'All' || topic === tVal) && 
                 (lVal === 'All' || level === lVal) && 
                 (rVal === 'All' || revisit === rVal)) {
-                row.style.display='';
+                row.style.display = '';
             } else {
-                row.style.display='none';
+                row.style.display = 'none';
             }
+        });
+
+        // Show/hide topic headers
+        topicRows.forEach(header => {
+            const topicName = header.textContent.split(' (')[0].trim();
+            const anyVisible = dataRows.some(r => r.getAttribute('data-topic') === topicName && r.style.display !== 'none');
+            header.style.display = anyVisible ? '' : 'none';
         });
     }
 
