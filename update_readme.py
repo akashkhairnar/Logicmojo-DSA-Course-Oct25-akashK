@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
 
-ROOT = "dsa"
+ROOT = "dsa"                     # Folder where all your .java files
 README_PATH = "README.md"
 HTML_PATH = "index.html"
 
-
 def extract_metadata(file_path):
+    """Extract metadata from Java file comments."""
     problem = "-"
     link = ""
     notes = "-"
@@ -33,17 +33,14 @@ def extract_metadata(file_path):
         print(f"⚠️ Error reading {file_path}: {e}")
     return problem, link, notes, level, pattern, revisit
 
-
 def extract_topic(root):
     rel = os.path.relpath(root, ROOT)
     if rel == ".":
         return "General"
     return "/".join(rel.split(os.sep))
 
-
 def escape_md(text: str) -> str:
     return text.replace("|", "\\|")
-
 
 def collect_files_by_topic():
     topics = {}
@@ -74,7 +71,6 @@ def collect_files_by_topic():
             topics.setdefault(topic, []).append(entry)
     return topics
 
-
 def generate_table():
     topics = collect_files_by_topic()
     if not topics:
@@ -101,9 +97,7 @@ def generate_table():
             rows.append(f"| {count} | {problem_display} | {github_link} | {level_text} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |")
             count += 1
         rows.append("|  |  |  |  |  |  |  |")
-
     return header + "\n" + "\n".join(rows)
-
 
 def generate_html():
     topics = collect_files_by_topic()
@@ -116,15 +110,13 @@ def generate_html():
     for topic in sorted_topics:
         entries = topics[topic]
         entries_sorted = sorted(entries, key=lambda e: e["mtime"], reverse=True)
-        # Topic header row
-        rows_html.append(f"<tr class='topic-header'><td colspan=7 style='background:#f1f5f9;font-weight:bold'>{escape_md(topic)} ({len(entries_sorted)})</td></tr>")
         for e in entries_sorted:
             path = e["path"].replace('\\', '/')
             problem_cell = f'<a href="{e["link"]}" target="_blank">{escape_md(e["problem"])}</a>' if e["link"] else escape_md(e["problem"])
             code_cell = f'<a href="{path}" target="_blank">Code</a>'
             level = (e["level"] or "").strip()
-            revisits_set.add(e["revisit"])
             levels_set.add(level)
+            revisits_set.add(e["revisit"])
             if level.lower() == "easy":
                 level_cell = '<span class="level-easy">Easy</span>'
             elif level.lower() == "medium":
@@ -134,7 +126,7 @@ def generate_html():
             else:
                 level_cell = escape_md(level) if level else "-"
 
-            rows_html.append(f"<tr data-topic='{escape_md(topic)}' data-level='{escape_md(level)}' data-revisit='{escape_md(e['revisit'])}'><td>{count}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_md(e['pattern'])}</td><td>{escape_md(e['revisit'])}</td><td>{escape_md(e['notes'])}</td></tr>")
+            rows_html.append(f"<tr data-topic='{escape_md(topic)}' data-level='{escape_md(level)}' data-revisit='{escape_md(e['revisit'])}' data-search='{escape_md(e['problem']+e['pattern']+e['notes']).lower()}'><td>{count}</td><td>{escape_md(topic)}</td><td>{problem_cell}</td><td>{code_cell}</td><td>{level_cell}</td><td>{escape_md(e['pattern'])}</td><td>{escape_md(e['revisit'])}</td><td>{escape_md(e['notes'])}</td></tr>")
             count += 1
 
     html_content = f"""<!DOCTYPE html>
@@ -144,41 +136,46 @@ def generate_html():
 <title>DSA Dashboard</title>
 <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css'>
 <style>
-body {{ font-family: Arial; margin: 24px; background: #f8f9fa; }}
-h1 {{ text-align:center; margin-bottom: 24px; color:#333; }}
-table {{ width:100%; border-collapse: collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-radius:6px; }}
-th {{ background:#007bff; color:white; padding:10px; }}
-td {{ padding:8px; border-bottom:1px solid #ddd; }}
-tr:hover {{ background-color:#f1f1f1; }}
-.level-easy {{ background:#d4edda; color:#155724; padding:4px 8px; border-radius:4px; font-weight:bold; }}
-.level-medium {{ background:#fff3cd; color:#856404; padding:4px 8px; border-radius:4px; font-weight:bold; }}
-.level-hard {{ background:#f8d7da; color:#721c24; padding:4px 8px; border-radius:4px; font-weight:bold; }}
-.filter-card {{
-  background:white; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 24px; background: #f0f2f5; }}
+h1 {{ text-align:center; margin-bottom: 20px; color:#222; }}
+.filter-container {{
+    display:flex; flex-wrap:wrap; gap:12px; background:white; padding:16px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-bottom:20px;
+    align-items:center;
 }}
-.filter-card label {{ font-weight:bold; margin-right:6px; }}
-.filter-card select {{ padding:6px 10px; border-radius:6px; border:1px solid #ccc; }}
-.filter-card select:hover {{ border-color:#007bff; }}
+.filter-container label {{ font-weight:bold; margin-right:6px; }}
+.filter-container select, .filter-container input[type='text'] {{
+    padding:6px 10px; border-radius:6px; border:1px solid #ccc; min-width:150px; transition:0.3s;
+}}
+.filter-container select:hover, .filter-container input[type='text']:hover {{ border-color:#007bff; }}
+table {{ width:100%; border-collapse: collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-radius:6px; }}
+th {{ background:#007bff; color:white; padding:12px; }}
+td {{ padding:10px; border-bottom:1px solid #ddd; }}
+tr:hover {{ background-color:#f1f1f1; }}
+.level-easy {{ background:#d4edda; color:#155724; padding:4px 10px; border-radius:4px; font-weight:bold; }}
+.level-medium {{ background:#fff3cd; color:#856404; padding:4px 10px; border-radius:4px; font-weight:bold; }}
+.level-hard {{ background:#f8d7da; color:#721c24; padding:4px 10px; border-radius:4px; font-weight:bold; }}
+@media(max-width:768px) {{
+    .filter-container {{ flex-direction:column; align-items:flex-start; }}
+}}
 </style>
 </head>
 <body>
 
 <h1>📘 DSA Problem Dashboard</h1>
 
-<div class='filter-card'>
+<div class='filter-container'>
+<label for='searchInput'>Search:</label>
+<input type='text' id='searchInput' placeholder='Search problem, pattern, notes...'/>
 <label for='topicFilter'>Topic:</label>
 <select id='topicFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(t)}'>{escape_md(t)}</option>" for t in sorted_topics])}</select>
-
 <label for='levelFilter'>Level:</label>
 <select id='levelFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(l)}'>{escape_md(l)}</option>" for l in sorted(levels_set) if l])}</select>
-
 <label for='revisitFilter'>Revisit:</label>
 <select id='revisitFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(r)}'>{escape_md(r)}</option>" for r in sorted(revisits_set) if r])}</select>
 </div>
 
-<table id='problemsTable' class='datatable'>
-<thead><tr><th>#</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Quick Notes</th></tr></thead>
+<table id='problemsTable'>
+<thead><tr><th>#</th><th>Topic</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Quick Notes</th></tr></thead>
 <tbody>
 {''.join(rows_html)}
 </tbody>
@@ -187,44 +184,39 @@ tr:hover {{ background-color:#f1f1f1; }}
 <script src='https://cdn.jsdelivr.net/npm/simple-datatables@latest' defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {{
-    const table = document.querySelector('#problemsTable');
-    const dataTable = new simpleDatatables.DataTable(table);
-
+    const dataTable = new simpleDatatables.DataTable("#problemsTable");
     const topicFilter = document.getElementById('topicFilter');
     const levelFilter = document.getElementById('levelFilter');
     const revisitFilter = document.getElementById('revisitFilter');
+    const searchInput = document.getElementById('searchInput');
 
     function applyFilters() {{
-        const topicRows = document.querySelectorAll('tr.topic-header');
-        const dataRows = Array.from(table.tBodies[0].rows).filter(r => r.hasAttribute('data-topic'));
+        const topicVal = topicFilter.value.toLowerCase();
+        const levelVal = levelFilter.value.toLowerCase();
+        const revisitVal = revisitFilter.value.toLowerCase();
+        const searchVal = searchInput.value.toLowerCase();
 
-        dataRows.forEach(row => {{
-            const topic = row.getAttribute('data-topic');
-            const level = row.getAttribute('data-level');
-            const revisit = row.getAttribute('data-revisit');
-            const tVal = topicFilter.value;
-            const lVal = levelFilter.value;
-            const rVal = revisitFilter.value;
+        dataTable.rows().every(function(row) {{
+            const topic = this.cells(1).data().toLowerCase();
+            const levelCell = this.cells(4).data().toLowerCase();
+            const revisitCell = this.cells(6).data().toLowerCase();
+            const searchText = this.cells(2).data().toLowerCase() + " " + this.cells(5).data().toLowerCase() + " " + this.cells(7).data().toLowerCase();
 
-            if ((tVal === 'All' || topic === tVal) && 
-                (lVal === 'All' || level === lVal) && 
-                (rVal === 'All' || revisit === rVal)) {{
-                row.style.display = '';
+            if ((topicVal === 'all' || topic.includes(topicVal)) &&
+                (levelVal === 'all' || levelCell.includes(levelVal)) &&
+                (revisitVal === 'all' || revisitCell.includes(revisitVal)) &&
+                (searchText.includes(searchVal))) {{
+                this.show();
             }} else {{
-                row.style.display = 'none';
+                this.hide();
             }}
-        }});
-
-        topicRows.forEach(header => {{
-            const topicName = header.textContent.split(' (')[0].trim();
-            const anyVisible = dataRows.some(r => r.getAttribute('data-topic') === topicName && r.style.display !== 'none');
-            header.style.display = anyVisible ? '' : 'none';
         }});
     }}
 
     topicFilter.addEventListener('change', applyFilters);
     levelFilter.addEventListener('change', applyFilters);
     revisitFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
 }});
 </script>
 
@@ -233,9 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
     with open(HTML_PATH, 'w', encoding='utf-8') as f:
         f.write(html_content)
-
-    print(f"✅ {HTML_PATH} (Dashboard with improved filters) generated successfully!")
-
+    print(f"✅ {HTML_PATH} generated successfully!")
 
 def update_readme():
     table = generate_table()
@@ -253,7 +243,6 @@ Automatically generated list of solved problems (grouped by topic).
     with open(README_PATH, 'w', encoding='utf-8') as f:
         f.write(content)
     print(f"✅ {README_PATH} updated successfully!")
-
 
 if __name__ == '__main__':
     update_readme()
