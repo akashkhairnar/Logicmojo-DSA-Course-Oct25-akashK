@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>DSA Dashboard</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -77,33 +76,41 @@ tr:hover { background-color:#f1f1f1; }
 </tbody>
 </table>
 
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const dt = new simpleDatatables.DataTable("#problemsTable", {
-        perPage: 20,
-        searchable: true,
-        sortable: true
-    });
-
+    const searchInput = document.getElementById("searchInput");
     const topicFilter = document.getElementById("topicFilter");
     const levelFilter = document.getElementById("levelFilter");
     const revisitFilter = document.getElementById("revisitFilter");
-    const searchInput = document.getElementById("searchInput");
+    const table = document.getElementById("problemsTable");
+    const rows = Array.from(table.tBodies[0].rows);
 
     function applyFilters() {
-        dt.columns().search('');
-        if(topicFilter.value) dt.columns(1).search(topicFilter.value, false, true);
-        if(levelFilter.value) dt.columns(4).search(levelFilter.value, false, true);
-        if(revisitFilter.value) dt.columns(6).search(revisitFilter.value, false, true);
-        dt.search(searchInput.value);
-        dt.refresh();
+        const searchText = searchInput.value.toLowerCase();
+        const topicValue = topicFilter.value.toLowerCase();
+        const levelValue = levelFilter.value.toLowerCase();
+        const revisitValue = revisitFilter.value.toLowerCase();
+
+        rows.forEach(row => {
+            const topic = row.cells[1].textContent.toLowerCase();
+            const level = row.cells[4].textContent.toLowerCase();
+            const revisit = row.cells[6].textContent.toLowerCase();
+            const text = row.textContent.toLowerCase();
+
+            const match = 
+                (!topicValue || topic.includes(topicValue)) &&
+                (!levelValue || level.includes(levelValue)) &&
+                (!revisitValue || revisit.includes(revisitValue)) &&
+                (!searchText || text.includes(searchText));
+
+            row.style.display = match ? "" : "none";
+        });
     }
 
+    searchInput.addEventListener("input", applyFilters);
     topicFilter.addEventListener("change", applyFilters);
     levelFilter.addEventListener("change", applyFilters);
     revisitFilter.addEventListener("change", applyFilters);
-    searchInput.addEventListener("input", applyFilters);
 });
 </script>
 
