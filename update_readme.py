@@ -124,7 +124,7 @@ def generate_readme():
 Automatically generated list of solved problems, grouped by topic.
 {table_content}
 """
-    with open(REAME_PATH, "w", encoding="utf-8") as f:
+    with open(README_PATH, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"✅ {README_PATH} updated successfully!")
 
