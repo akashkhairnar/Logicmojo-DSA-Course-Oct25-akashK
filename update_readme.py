@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-ROOT = "dsa"                     # Folder where all your .java files
+ROOT = "dsa"
 README_PATH = "README.md"
 HTML_PATH = "index.html"
 
@@ -100,7 +100,7 @@ def generate_table():
             level_text = e["level"] if e["level"] else "-"
             rows.append(f"| {count} | {problem_display} | {github_link} | {level_text} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |")
             count += 1
-        rows.append("|  |  |  |  |  |  |  |")  # Blank line between topics
+        rows.append("|  |  |  |  |  |  |  |")
 
     return header + "\n" + "\n".join(rows)
 
@@ -145,25 +145,36 @@ def generate_html():
 <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css'>
 <style>
 body {{ font-family: Arial; margin: 24px; background: #f8f9fa; }}
-h1 {{ text-align:center; }}
+h1 {{ text-align:center; margin-bottom: 24px; color:#333; }}
 table {{ width:100%; border-collapse: collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-radius:6px; }}
 th {{ background:#007bff; color:white; padding:10px; }}
 td {{ padding:8px; border-bottom:1px solid #ddd; }}
 tr:hover {{ background-color:#f1f1f1; }}
-.level-easy {{ background:#d4edda; color:#155724; padding:4px 8px; border-radius:4px; }}
-.level-medium {{ background:#fff3cd; color:#856404; padding:4px 8px; border-radius:4px; }}
-.level-hard {{ background:#f8d7da; color:#721c24; padding:4px 8px; border-radius:4px; }}
-.filter-bar {{ margin-bottom: 12px; }}
+.level-easy {{ background:#d4edda; color:#155724; padding:4px 8px; border-radius:4px; font-weight:bold; }}
+.level-medium {{ background:#fff3cd; color:#856404; padding:4px 8px; border-radius:4px; font-weight:bold; }}
+.level-hard {{ background:#f8d7da; color:#721c24; padding:4px 8px; border-radius:4px; font-weight:bold; }}
+.filter-card {{
+  background:white; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+}}
+.filter-card label {{ font-weight:bold; margin-right:6px; }}
+.filter-card select {{ padding:6px 10px; border-radius:6px; border:1px solid #ccc; }}
+.filter-card select:hover {{ border-color:#007bff; }}
 </style>
 </head>
 <body>
 
 <h1>📘 DSA Problem Dashboard</h1>
 
-<div class='filter-bar'>
-Topic: <select id='topicFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(t)}'>{escape_md(t)}</option>" for t in sorted_topics])}</select>
-Level: <select id='levelFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(l)}'>{escape_md(l)}</option>" for l in sorted(levels_set) if l])}</select>
-Revisit: <select id='revisitFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(r)}'>{escape_md(r)}</option>" for r in sorted(revisits_set) if r])}</select>
+<div class='filter-card'>
+<label for='topicFilter'>Topic:</label>
+<select id='topicFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(t)}'>{escape_md(t)}</option>" for t in sorted_topics])}</select>
+
+<label for='levelFilter'>Level:</label>
+<select id='levelFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(l)}'>{escape_md(l)}</option>" for l in sorted(levels_set) if l])}</select>
+
+<label for='revisitFilter'>Revisit:</label>
+<select id='revisitFilter'><option value='All'>All</option>{''.join([f"<option value='{escape_md(r)}'>{escape_md(r)}</option>" for r in sorted(revisits_set) if r])}</select>
 </div>
 
 <table id='problemsTable' class='datatable'>
@@ -204,7 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {{
             }}
         }});
 
-        // Show/hide topic headers
         topicRows.forEach(header => {{
             const topicName = header.textContent.split(' (')[0].trim();
             const anyVisible = dataRows.some(r => r.getAttribute('data-topic') === topicName && r.style.display !== 'none');
@@ -224,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {{
     with open(HTML_PATH, 'w', encoding='utf-8') as f:
         f.write(html_content)
 
-    print(f"✅ {HTML_PATH} (Dashboard with filters) generated successfully!")
+    print(f"✅ {HTML_PATH} (Dashboard with improved filters) generated successfully!")
 
 
 def update_readme():
