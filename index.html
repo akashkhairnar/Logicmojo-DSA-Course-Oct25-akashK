@@ -1,34 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-<meta charset="UTF-8">
+<meta charset='UTF-8'>
 <title>DSA Dashboard</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css'>
 <style>
-body { font-family: Arial, sans-serif; margin: 24px; background: #f8f9fa; }
-h1 { text-align: center; color: #333; }
-table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-radius: 6px; }
-th { background: #007bff; color: white; padding: 10px; }
-td { padding: 8px; border-bottom: 1px solid #ddd; }
-tr:hover { background-color: #f1f1f1; }
-.level-easy { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; }
-.level-medium { background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; }
-.level-hard { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; }
+body { font-family: Arial; margin: 24px; background: #f8f9fa; }
+h1 { text-align:center; }
+table { width:100%; border-collapse: collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-radius:6px; }
+th { background:#007bff; color:white; padding:10px; }
+td { padding:8px; border-bottom:1px solid #ddd; }
+tr:hover { background-color:#f1f1f1; }
+.level-easy { background:#d4edda; color:#155724; padding:4px 8px; border-radius:4px; }
+.level-medium { background:#fff3cd; color:#856404; padding:4px 8px; border-radius:4px; }
+.level-hard { background:#f8d7da; color:#721c24; padding:4px 8px; border-radius:4px; }
+.filter-bar { margin-bottom: 12px; }
 </style>
 </head>
 <body>
+
 <h1>📘 DSA Problem Dashboard</h1>
-<table id="problemsTable" class="datatable">
-  <thead>
-    <tr><th>#</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Quick Notes</th></tr>
-  </thead>
-  <tbody>
-    <tr class='topic-header'><td colspan=8 style='background:#f1f5f9;font-weight:bold'>Array (8)</td></tr><tr><td>1</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>HashMap (Complement Pattern)</td><td>No</td><td>Use map to store num[i],index.</td></tr><tr><td>2</td><td><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/" target="_blank">167. Two Sum II - Input Array Is Sorted</a></td><td><a href="dsa/Array/Two Sum II.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>modified bimaey search(as it is sorted)</td></tr><tr><td>3</td><td><a href="https://leetcode.com/problems/remove-duplicates-from-sorted-array/description" target="_blank">26. Remove Duplicates frm sorted Array</a></td><td><a href="dsa/Array/Remove Duplicates from Sorted Array.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>two pointer if find different element then update element of slow</td></tr><tr><td>4</td><td><a href="https://leetcode.com/problems/product-of-array-except-self/description/" target="_blank">238. Product of Array Except Self</a></td><td><a href="dsa/Array/Product_Except_Self.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>prefix & sufix</td><td>No</td><td>prefix and suffix prodcut store in array and do product later</td></tr><tr><td>5</td><td><a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank">42. Trapping Rain Water</a></td><td><a href="dsa/Array/trapping-rain-water.java" target="_blank">Code</a></td><td><span class="level-medium">Medium</span></td><td>two pointer(without space)</td><td>yes</td><td>store max left & right heigh for every index then caculate trap water</td></tr><tr><td>6</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>Yes</td><td>Count zeros and if count>0 then swap number by that much index</td></tr><tr><td>7</td><td><a href="https://leetcode.com/problems/majority-element/description/" target="_blank">169. Majority Element</a></td><td><a href="dsa/Array/Majority Element.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Moore Voting Algorithm.</td><td>no</td><td>Moore Voting Algorithm. maintain frequency & max element</td></tr><tr><td>8</td><td><a href="https://leetcode.com/problems/container-with-most-water/description/" target="_blank">11. Container With Most Water</a></td><td><a href="dsa/Array/container-with-most-water.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>Two pointer- calculate area whatever hight is slower from low & high move that</td></tr><tr class='topic-header'><td colspan=8 style='background:#f1f5f9;font-weight:bold'>LinkedList (3)</td></tr><tr><td>9</td><td><a href="https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/" target="_blank">83. Remove Duplicates from Sorted List</a></td><td><a href="dsa/LinkedList/remove-duplicates-from-sorted-list.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>two pointer= link the nodes if not match</td></tr><tr><td>10</td><td><a href="https://leetcode.com/problems/reverse-linked-list/" target="_blank">206. Reverse Linked List</a></td><td><a href="dsa/LinkedList/reverse-linked-list.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>two point prev & curr swap one link at a time</td></tr><tr><td>11</td><td><a href="https://leetcode.com/problems/intersection-of-two-linked-lists/" target="_blank">160. Intersection of Two Linked Lists</a></td><td><a href="dsa/LinkedList/intersection-of-two-linked-lists.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>As both length is diff if we start traversing another list then both will be at intersection</td></tr><tr class='topic-header'><td colspan=8 style='background:#f1f5f9;font-weight:bold'>recursion (3)</td></tr><tr><td>12</td><td><a href="https://leetcode.com/problems/subsets/description/" target="_blank">78. Subsets</a></td><td><a href="dsa/recursion/find_Subsets.java" target="_blank">Code</a></td><td><span class="level-medium">Medium</span></td><td>backtracking</td><td>Yes</td><td>subsequence pattern to pick and not pick current element dual recursion call</td></tr><tr><td>13</td><td><a href="https://leetcode.com/problems/combination-sum-ii/" target="_blank">40. Combination Sum II</a></td><td><a href="dsa/recursion/combination-sum-iI.java" target="_blank">Code</a></td><td><span class="level-hard">Hard</span></td><td>backtracking</td><td>Yes</td><td>-</td></tr><tr><td>14</td><td><a href="https://leetcode.com/problems/combination-sum/description/" target="_blank">39. Combination Sum</a></td><td><a href="dsa/recursion/combination-sum.java" target="_blank">Code</a></td><td><span class="level-medium">Medium</span></td><td>backtracking</td><td>Yes</td><td>same pattern pick not pick just we can pick same element mutiple time  so not inc that time Also handle other cases</td></tr>
-  </tbody>
+
+<div class='filter-bar'>
+Topic: <select id='topicFilter'><option value='All'>All</option><option value='Array'>Array</option><option value='LinkedList'>LinkedList</option><option value='recursion'>recursion</option></select>
+Level: <select id='levelFilter'><option value='All'>All</option><option value='Easy'>Easy</option><option value='Hard'>Hard</option><option value='Medium'>Medium</option></select>
+Revisit: <select id='revisitFilter'><option value='All'>All</option><option value='No'>No</option><option value='Yes'>Yes</option><option value='no'>no</option><option value='yes'>yes</option></select>
+</div>
+
+<table id='problemsTable' class='datatable'>
+<thead><tr><th>#</th><th>Problem</th><th>Solution</th><th>Level</th><th>Pattern</th><th>Revisit</th><th>Quick Notes</th></tr></thead>
+<tbody>
+<tr class='topic-header'><td colspan=7 style='background:#f1f5f9;font-weight:bold'>Array (8)</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='No'><td>1</td><td><a href="https://leetcode.com/problems/two-sum/description/." target="_blank">Two Sum</a></td><td><a href="dsa/Array/TwoSum.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>HashMap (Complement Pattern)</td><td>No</td><td>Use map to store num[i],index.</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='no'><td>2</td><td><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/" target="_blank">167. Two Sum II - Input Array Is Sorted</a></td><td><a href="dsa/Array/Two Sum II.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>modified bimaey search(as it is sorted)</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='no'><td>3</td><td><a href="https://leetcode.com/problems/remove-duplicates-from-sorted-array/description" target="_blank">26. Remove Duplicates frm sorted Array</a></td><td><a href="dsa/Array/Remove Duplicates from Sorted Array.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>two pointer if find different element then update element of slow</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='No'><td>4</td><td><a href="https://leetcode.com/problems/product-of-array-except-self/description/" target="_blank">238. Product of Array Except Self</a></td><td><a href="dsa/Array/Product_Except_Self.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>prefix & sufix</td><td>No</td><td>prefix and suffix prodcut store in array and do product later</td></tr><tr data-topic='Array' data-level='Medium' data-revisit='yes'><td>5</td><td><a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank">42. Trapping Rain Water</a></td><td><a href="dsa/Array/trapping-rain-water.java" target="_blank">Code</a></td><td><span class="level-medium">Medium</span></td><td>two pointer(without space)</td><td>yes</td><td>store max left & right heigh for every index then caculate trap water</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='Yes'><td>6</td><td><a href="https://leetcode.com/problems/move-zeroes/description." target="_blank">Move Zeroes</a></td><td><a href="dsa/Array/MoveZeros.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>Yes</td><td>Count zeros and if count>0 then swap number by that much index</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='no'><td>7</td><td><a href="https://leetcode.com/problems/majority-element/description/" target="_blank">169. Majority Element</a></td><td><a href="dsa/Array/Majority Element.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Moore Voting Algorithm.</td><td>no</td><td>Moore Voting Algorithm. maintain frequency & max element</td></tr><tr data-topic='Array' data-level='Easy' data-revisit='no'><td>8</td><td><a href="https://leetcode.com/problems/container-with-most-water/description/" target="_blank">11. Container With Most Water</a></td><td><a href="dsa/Array/container-with-most-water.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>Two pointer- calculate area whatever hight is slower from low & high move that</td></tr><tr class='topic-header'><td colspan=7 style='background:#f1f5f9;font-weight:bold'>LinkedList (3)</td></tr><tr data-topic='LinkedList' data-level='Easy' data-revisit='no'><td>9</td><td><a href="https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/" target="_blank">83. Remove Duplicates from Sorted List</a></td><td><a href="dsa/LinkedList/remove-duplicates-from-sorted-list.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>two pointer= link the nodes if not match</td></tr><tr data-topic='LinkedList' data-level='Easy' data-revisit='no'><td>10</td><td><a href="https://leetcode.com/problems/reverse-linked-list/" target="_blank">206. Reverse Linked List</a></td><td><a href="dsa/LinkedList/reverse-linked-list.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>two point prev & curr swap one link at a time</td></tr><tr data-topic='LinkedList' data-level='Easy' data-revisit='no'><td>11</td><td><a href="https://leetcode.com/problems/intersection-of-two-linked-lists/" target="_blank">160. Intersection of Two Linked Lists</a></td><td><a href="dsa/LinkedList/intersection-of-two-linked-lists.java" target="_blank">Code</a></td><td><span class="level-easy">Easy</span></td><td>Two Pointer</td><td>no</td><td>As both length is diff if we start traversing another list then both will be at intersection</td></tr><tr class='topic-header'><td colspan=7 style='background:#f1f5f9;font-weight:bold'>recursion (3)</td></tr><tr data-topic='recursion' data-level='Medium' data-revisit='Yes'><td>12</td><td><a href="https://leetcode.com/problems/subsets/description/" target="_blank">78. Subsets</a></td><td><a href="dsa/recursion/find_Subsets.java" target="_blank">Code</a></td><td><span class="level-medium">Medium</span></td><td>backtracking</td><td>Yes</td><td>subsequence pattern to pick and not pick current element dual recursion call</td></tr><tr data-topic='recursion' data-level='Hard' data-revisit='Yes'><td>13</td><td><a href="https://leetcode.com/problems/combination-sum-ii/" target="_blank">40. Combination Sum II</a></td><td><a href="dsa/recursion/combination-sum-iI.java" target="_blank">Code</a></td><td><span class="level-hard">Hard</span></td><td>backtracking</td><td>Yes</td><td>-</td></tr><tr data-topic='recursion' data-level='Medium' data-revisit='Yes'><td>14</td><td><a href="https://leetcode.com/problems/combination-sum/description/" target="_blank">39. Combination Sum</a></td><td><a href="dsa/recursion/combination-sum.java" target="_blank">Code</a></td><td><span class="level-medium">Medium</span></td><td>backtracking</td><td>Yes</td><td>same pattern pick not pick just we can pick same element mutiple time  so not inc that time Also handle other cases</td></tr>
+</tbody>
 </table>
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
+
+<script src='https://cdn.jsdelivr.net/npm/simple-datatables@latest' defer></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() { const table = document.querySelector("#problemsTable"); new simpleDatatables.DataTable(table); });
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('#problemsTable');
+    const dataTable = new simpleDatatables.DataTable(table);
+
+    const topicFilter = document.getElementById('topicFilter');
+    const levelFilter = document.getElementById('levelFilter');
+    const revisitFilter = document.getElementById('revisitFilter');
+
+    function applyFilters() {
+        Array.from(table.tBodies[0].rows).forEach(row => {
+            const topic = row.getAttribute('data-topic');
+            const level = row.getAttribute('data-level');
+            const revisit = row.getAttribute('data-revisit');
+            const tVal = topicFilter.value;
+            const lVal = levelFilter.value;
+            const rVal = revisitFilter.value;
+            if ((tVal === 'All' || topic === tVal) && 
+                (lVal === 'All' || level === lVal) && 
+                (rVal === 'All' || revisit === rVal)) {
+                row.style.display='';
+            } else {
+                row.style.display='none';
+            }
+        });
+    }
+
+    topicFilter.addEventListener('change', applyFilters);
+    levelFilter.addEventListener('change', applyFilters);
+    revisitFilter.addEventListener('change', applyFilters);
+});
 </script>
+
 </body>
 </html>
