@@ -4,11 +4,10 @@
 
 ---
 
-Automatically generated list of solved problems (grouped by topic).
+Automatically generated list of solved problems.
 
 | # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |
 |---|----------|-----------|--------|-----------------|----------|--------------|
-| **Array (8)** |  |  |  |  |  |  |
 | 1 | [Two Sum](https://leetcode.com/problems/two-sum/description/.) | [Code](dsa/Array/TwoSum.java) | Easy | HashMap (Complement Pattern) | No | Use map to store num[i],index. |
 | 2 | [167. Two Sum II - Input Array Is Sorted](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/description/) | [Code](dsa/Array/Two Sum II.java) | Easy | Two Pointer | no | modified bimaey search(as it is sorted) |
 | 3 | [26. Remove Duplicates frm sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description) | [Code](dsa/Array/Remove Duplicates from Sorted Array.java) | Easy | Two Pointer | no | two pointer if find different element then update element of slow |
@@ -17,14 +16,9 @@ Automatically generated list of solved problems (grouped by topic).
 | 6 | [Move Zeroes](https://leetcode.com/problems/move-zeroes/description.) | [Code](dsa/Array/MoveZeros.java) | Easy | Two Pointer | Yes | Count zeros and if count>0 then swap number by that much index |
 | 7 | [169. Majority Element](https://leetcode.com/problems/majority-element/description/) | [Code](dsa/Array/Majority Element.java) | Easy | Moore Voting Algorithm. | no | Moore Voting Algorithm. maintain frequency & max element |
 | 8 | [11. Container With Most Water](https://leetcode.com/problems/container-with-most-water/description/) | [Code](dsa/Array/container-with-most-water.java) | Easy | Two Pointer | no | Two pointer- calculate area whatever hight is slower from low & high move that |
-|  |  |  |  |  |  |  |
-| **LinkedList (3)** |  |  |  |  |  |  |
-| 9 | [83. Remove Duplicates from Sorted List](https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/) | [Code](dsa/LinkedList/remove-duplicates-from-sorted-list.java) | Easy | Two Pointer | no | two pointer= link the nodes if not match |
-| 10 | [206. Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/) | [Code](dsa/LinkedList/reverse-linked-list.java) | Easy | Two Pointer | no | two point prev & curr swap one link at a time |
-| 11 | [160. Intersection of Two Linked Lists](https://leetcode.com/problems/intersection-of-two-linked-lists/) | [Code](dsa/LinkedList/intersection-of-two-linked-lists.java) | Easy | Two Pointer | no | As both length is diff if we start traversing another list then both will be at intersection |
-|  |  |  |  |  |  |  |
-| **recursion (3)** |  |  |  |  |  |  |
-| 12 | [78. Subsets](https://leetcode.com/problems/subsets/description/) | [Code](dsa/recursion/find_Subsets.java) | Medium | backtracking | Yes | subsequence pattern to pick and not pick current element dual recursion call |
-| 13 | [40. Combination Sum II](https://leetcode.com/problems/combination-sum-ii/) | [Code](dsa/recursion/combination-sum-iI.java) | Hard | backtracking | Yes | - |
-| 14 | [39. Combination Sum](https://leetcode.com/problems/combination-sum/description/) | [Code](dsa/recursion/combination-sum.java) | Medium | backtracking | Yes | same pattern pick not pick just we can pick same element mutiple time  so not inc that time Also handle other cases |
-|  |  |  |  |  |  |  |
+| 9 | [78. Subsets](https://leetcode.com/problems/subsets/description/) | [Code](dsa/recursion/find_Subsets.java) | Medium | backtracking | Yes | subsequence pattern to pick and not pick current element dual recursion call |
+| 10 | [40. Combination Sum II](https://leetcode.com/problems/combination-sum-ii/) | [Code](dsa/recursion/combination-sum-iI.java) | Hard | backtracking | Yes | - |
+| 11 | [39. Combination Sum](https://leetcode.com/problems/combination-sum/description/) | [Code](dsa/recursion/combination-sum.java) | Medium | backtracking | Yes | same pattern pick not pick just we can pick same element mutiple time  so not inc that time Also handle other cases |
+| 12 | [83. Remove Duplicates from Sorted List](https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/) | [Code](dsa/LinkedList/remove-duplicates-from-sorted-list.java) | Easy | Two Pointer | no | two pointer= link the nodes if not match |
+| 13 | [206. Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/) | [Code](dsa/LinkedList/reverse-linked-list.java) | Easy | Two Pointer | no | two point prev & curr swap one link at a time |
+| 14 | [160. Intersection of Two Linked Lists](https://leetcode.com/problems/intersection-of-two-linked-lists/) | [Code](dsa/LinkedList/intersection-of-two-linked-lists.java) | Easy | Two Pointer | no | As both length is diff if we start traversing another list then both will be at intersection |
