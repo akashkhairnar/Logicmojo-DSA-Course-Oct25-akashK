@@ -1,4 +1,6 @@
 import os
+import time
+from pathlib import Path
 
 ROOT = "dsa"                     # Folder where all your .java files are
 README_PATH = "README.md"
@@ -6,7 +8,7 @@ HTML_PATH = "index.html"
 
 
 def extract_metadata(file_path):
-    """Extract metadata (Problem, Link, Notes, Level, Time, Revisit) from Java file comments."""
+    """Extract metadata (Problem, Link, Notes, Level, Pattern, Revisit) from Java file comments."""
     problem = "-"
     link = ""
     notes = "-"
@@ -43,80 +45,143 @@ def extract_metadata(file_path):
     return problem, link, notes, level, pattern, revisit
 
 
+def extract_topic(root):
+    """Extract folder name (topic) relative to ROOT folder."""
+    # Use pathlib to make the separator consistent across OS
+    rel = os.path.relpath(root, ROOT)
+    if rel == ".":
+        return "General"
+    parts = rel.split(os.sep)
+    # If nested topics like dsa/dp/1d -> join with '/'
+    return "/".join(parts)
+
+
+def escape_md(text: str) -> str:
+    """Escape pipes in Markdown table cells to avoid breaking the table."""
+    return text.replace("|", "\\|")
+
+
+def collect_files_by_topic():
+    """Walk ROOT and collect .java files grouped by topic with their mtime."""
+    topics = {}
+
+    for root, _, files in os.walk(ROOT):
+        # skip hidden/system folders if any
+        if ".git" in root or ".github" in root:
+            continue
+
+        topic = extract_topic(root)
+        for file in files:
+            if not file.endswith(".java"):
+                continue
+
+            path = os.path.join(root, file)
+            try:
+                mtime = os.path.getmtime(path)
+            except Exception:
+                mtime = 0
+
+            problem, link, notes, level, pattern, revisit = extract_metadata(path)
+
+            entry = {
+                "path": path,
+                "file": file,
+                "problem": problem,
+                "link": link,
+                "notes": notes,
+                "level": level,
+                "pattern": pattern,
+                "revisit": revisit,
+                "mtime": mtime,
+            }
+
+            topics.setdefault(topic, []).append(entry)
+
+    return topics
+
+
 def generate_table():
-    """Generate Markdown table for README.md."""
+    """Generate Markdown table for README.md grouped by topic and sorted by mtime (newest first)."""
+    topics = collect_files_by_topic()
+    if not topics:
+        return "No Java files found yet."
+
+    # Sort topics alphabetically for deterministic output
+    sorted_topics = sorted(topics.keys())
+
     rows = []
     count = 1
 
-    for root, _, files in os.walk(ROOT):
-        for file in sorted(files):
-            if file.endswith(".java") and ".git" not in root and ".github" not in root:
-                path = os.path.join(root, file)
-
-                github_link = f"[Code]({path})"
-                problem, link, notes, level, pattern, revisit = extract_metadata(path)
-
-                problem_display = f"[{problem}]({link})" if link else problem
-
-                rows.append(
-                    f"| {count} | {problem_display} | {github_link} |"
-                    f" {level} | {pattern} | {revisit} | {notes} |"
-                )
-                count += 1
-
-    if not rows:
-        return "No Java files found yet."
-
     header = (
-        "| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n"
-        "|---|----------|-----------|--------|-----------------|----------|--------------|"
+        "| # | Topic | Problem | Solution | Level | Pattern | Revisit | Quick Notes |\n"
+        "|---|--------|----------|-----------|--------|-----------------|----------|--------------|"
     )
+
+    for topic in sorted_topics:
+        entries = topics[topic]
+        # sort by mtime desc (newest first)
+        entries_sorted = sorted(entries, key=lambda e: e["mtime"], reverse=True)
+
+        for e in entries_sorted:
+            path = e["path"].replace('\\', '/')
+            github_link = f"[Code]({path})"
+            problem_display = f"[{escape_md(e['problem'])}]({e['link']})" if e['link'] else escape_md(e['problem'])
+
+            # Level plain text for README
+            level_text = e["level"] if e["level"] else "-"
+
+            rows.append(
+                f"| {count} | {escape_md(topic)} | {problem_display} | {github_link} | {level_text} | {escape_md(e['pattern'])} | {escape_md(e['revisit'])} | {escape_md(e['notes'])} |"
+            )
+            count += 1
 
     return header + "\n" + "\n".join(rows)
 
 
 def generate_html():
-    """Generate interactive HTML dashboard with color-coded difficulty."""
+    """Generate interactive HTML dashboard with color-coded difficulty and grouped by topic (sorted by mtime newest first)."""
+    topics = collect_files_by_topic()
+    sorted_topics = sorted(topics.keys())
+
     rows_html = []
     count = 1
 
-    for root, _, files in os.walk(ROOT):
-        for file in sorted(files):
-            if file.endswith(".java"):
-                path = os.path.join(root, file)
+    for topic in sorted_topics:
+        entries = topics[topic]
+        entries_sorted = sorted(entries, key=lambda e: e["mtime"], reverse=True)
 
-                problem, link, notes, level, pattern, revisit = extract_metadata(path)
+        # Optionally add a topic row as a visual separator in the table body
+        # We'll add a row with a bold topic name that spans columns
+        rows_html.append(f"<tr><td colspan=8 style='background:#f1f5f9;font-weight:bold'>{escape_md(topic)}</td></tr>")
 
-                problem_cell = (
-                    f'<a href="{link}" target="_blank">{problem}</a>' if link else problem
-                )
-                code_cell = f'<a href="{path}" target="_blank">Code</a>'
+        for e in entries_sorted:
+            path = e["path"].replace('\\', '/')
+            problem_cell = f'<a href="{e['link']}" target="_blank">{escape_md(e['problem'])}</a>' if e['link'] else escape_md(e['problem'])
+            code_cell = f'<a href="{path}" target="_blank">Code</a>'
 
-                # Level color badge
-                level_class = ""
-                if level.lower() == "easy":
-                    level_class = "level-easy"
-                elif level.lower() == "medium":
-                    level_class = "level-medium"
-                elif level.lower() == "hard":
-                    level_class = "level-hard"
+            level = (e["level"] or "").strip().lower()
+            if level == "easy":
+                level_cell = '<span class="level-easy">Easy</span>'
+            elif level == "medium":
+                level_cell = '<span class="level-medium">Medium</span>'
+            elif level == "hard":
+                level_cell = '<span class="level-hard">Hard</span>'
+            else:
+                level_cell = escape_md(e["level"]) if e["level"] else "-"
 
-                level_cell = f'<span class="{level_class}">{level}</span>'
+            rows_html.append(
+                f"<tr><td>{count}</td>"
+                f"<td>{escape_md(topic)}</td>"
+                f"<td>{problem_cell}</td>"
+                f"<td>{code_cell}</td>"
+                f"<td>{level_cell}</td>"
+                f"<td>{escape_md(e['pattern'])}</td>"
+                f"<td>{escape_md(e['revisit'])}</td>"
+                f"<td>{escape_md(e['notes'])}</td></tr>"
+            )
+            count += 1
 
-                rows_html.append(
-                    f"<tr><td>{count}</td>"
-                    f"<td>{problem_cell}</td>"
-                    f"<td>{code_cell}</td>"
-                    f"<td>{level_cell}</td>"
-                    f"<td>{pattern}</td>"
-                    f"<td>{revisit}</td>"
-                    f"<td>{notes}</td></tr>"
-                )
-                count += 1
-
-    # ---------- HTML CONTENT ----------
-    html_content = f"""
-<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -125,7 +190,7 @@ def generate_html():
 <style>
 body {{
   font-family: Arial, sans-serif;
-  margin: 40px;
+  margin: 24px;
   background: #f8f9fa;
 }}
 h1 {{
@@ -179,6 +244,7 @@ tr:hover {{
   <thead>
     <tr>
       <th>#</th>
+      <th>Topic</th>
       <th>Problem</th>
       <th>Solution</th>
       <th>Level</th>
@@ -201,19 +267,18 @@ document.addEventListener("DOMContentLoaded", function() {{
 </script>
 
 </body>
-</html>
-"""
+</html>"""
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print("✅ index.html (Dashboard) generated successfully!")
+    print(f"✅ {HTML_PATH} (Dashboard) generated successfully!")
 
 
 def update_readme():
     """Generate README.md with table and dashboard link."""
     table = generate_table()
-    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"
+    dashboard_url = "https://akashkhairnar.github.io/Logicmojo-DSA-Course-Oct25-akashK/"  # update if needed
 
     content = f"""# 🚀 DSA in Java
 
@@ -221,14 +286,14 @@ def update_readme():
 
 ---
 
-Automatically generated list of solved problems.
+Automatically generated list of solved problems (grouped by topic).
 
 {table}
 """
     with open(README_PATH, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print("✅ README.md updated successfully!")
+    print(f"✅ {README_PATH} updated successfully!")
 
 
 if __name__ == "__main__":
