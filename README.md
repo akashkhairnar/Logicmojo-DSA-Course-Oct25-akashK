@@ -33,3 +33,9 @@ Automatically generated list of solved problems, grouped by topic.
 | 2 | [40. Combination Sum II](https://leetcode.com/problems/combination-sum-ii/) | [Code](dsa/recursion/combination-sum-iI.java) | Hard | backtracking | Yes | - |
 | 3 | [78. Subsets](https://leetcode.com/problems/subsets/description/) | [Code](dsa/recursion/find_Subsets.java) | Medium | backtracking | Yes | subsequence pattern to pick and not pick current element dual recursion call |
 
+### Trees
+
+| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |
+|---|---------|---------|-------|---------|---------|-------------|
+| 1 | [701. Insert into a Binary Search Tree](https://leetcode.com/problems/insert-into-a-binary-search-tree/description/) | [Code](dsa/Trees/insert-into-bst.java) | Easy | Simple BST | No | both way recursion & iteration |
+
