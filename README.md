@@ -37,5 +37,6 @@ Automatically generated list of solved problems, grouped by topic.
 
 | # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |
 |---|---------|---------|-------|---------|---------|-------------|
-| 1 | [701. Insert into a Binary Search Tree](https://leetcode.com/problems/insert-into-a-binary-search-tree/description/) | [Code](dsa/Trees/insert-into-bst.java) | Easy | Simple BST | No | both way recursion & iteration |
+| 1 | [450. Delete Node in a BST](https://leetcode.com/problems/delete-node-in-a-bst/description/) | [Code](dsa/Trees/delete-node-bst.java) | Medium | basic Tree | Yes | Leaf Node: Just delete it.  One Child: Replace node with its only child.  Two Children: Replace with inorder predecessor (rightmost of left subtree) or inorder successor (leftmost of right subtree). We’ll use predecessor here. |
+| 2 | [701. Insert into a Binary Search Tree](https://leetcode.com/problems/insert-into-a-binary-search-tree/description/) | [Code](dsa/Trees/insert-into-bst.java) | Easy | Simple BST | No | both way recursion & iteration |
 
