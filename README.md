@@ -47,3 +47,9 @@ Automatically generated list of solved problems, grouped by topic.
 | 8 | [543. Diameter of Binary Tree](https://leetcode.com/problems/diameter-of-binary-tree/description/) | [Code](dsa/Trees/diameter-of-tree.java) | Easy | DFS | No | calculate height of each left and right each node max dia and lh+rh is ans |
 | 9 | [701. Insert into a Binary Search Tree](https://leetcode.com/problems/insert-into-a-binary-search-tree/description/) | [Code](dsa/Trees/insert-into-bst.java) | Easy | Simple BST | No | both way recursion & iteration |
 
+### Trees 
+
+| # | Problem | Solution | Level | Pattern | Revisit | Quick Notes |
+|---|---------|---------|-------|---------|---------|-------------|
+| 1 | [Top View of BT](https://takeuforward.org/plus/dsa/problems/top-view-of-bt?tab=description) | [Code](dsa/Trees /Top-View-BT.java) | Medium | BFS | Yes | we need store width an Node everytime in queue. Maintain treemap so that we can store in sorted order by width (BFS) |
+
