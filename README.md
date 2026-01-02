@@ -14,8 +14,9 @@ Automatically generated list of solved problems, grouped by topic.
 | 4 | [238. Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/description/) | [Code](dsa/Array/Product_Except_Self.java) | Easy | prefix & sufix | No | prefix and suffix prodcut store in array and do product later |
 | 5 | [26. Remove Duplicates frm sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description) | [Code](dsa/Array/Remove Duplicates from Sorted Array.java) | Easy | Two Pointer | No | two pointer if find different element then update element of slow |
 | 6 | [42. Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/) | [Code](dsa/Array/trapping-rain-water.java) | Medium | two pointer(without space) | Yes | store max left & right heigh for every index then caculate trap water |
-| 7 | [Move Zeroes](https://leetcode.com/problems/move-zeroes/description.) | [Code](dsa/Array/MoveZeros.java) | Easy | Two Pointer | Yes | Count zeros and if count>0 then swap number by that much index |
-| 8 | [Two Sum](https://leetcode.com/problems/two-sum/description/.) | [Code](dsa/Array/TwoSum.java) | Easy | HashMap (Complement Pattern) | No | Use map to store num[i],index. |
+| 7 | [961. N-Repeated Element in Size 2N Array](https://leetcode.com/problems/n-repeated-element-in-size-2n-array/description/) | [Code](dsa/Array/repeatedElemnt_2NArray.java) | Easy | Sliding Window | Yes | Pigeonhole Principle  The repeated element takes up EXACTLY 50% of the array Key observation 2: With 50% density, the element can't be spread too far apart Critical insight: In any window of 3 consecutive elements, the repeated element MUST appear at least twice |
+| 8 | [Move Zeroes](https://leetcode.com/problems/move-zeroes/description.) | [Code](dsa/Array/MoveZeros.java) | Easy | Two Pointer | Yes | Count zeros and if count>0 then swap number by that much index |
+| 9 | [Two Sum](https://leetcode.com/problems/two-sum/description/.) | [Code](dsa/Array/TwoSum.java) | Easy | HashMap (Complement Pattern) | No | Use map to store num[i],index. |
 
 ### LinkedList
 
